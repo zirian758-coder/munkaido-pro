@@ -149,62 +149,41 @@ input {
   background:#2563eb33;
 }
 
-/* NAPTÁR – iOS FEHÉR STÍLUS */
-.calendar-card {
-  background:#ffffff;
-  color:#000;
-  border:none;
+/* -------------------------
+   iOS NAPTÁR – TELJES SZEKCIÓ
+-------------------------- */
+
+/* HÓNAPVÁLTÓ FEJLÉC */
+#month-header {
+  background:#ffffff !important;
+  color:#000 !important;
+  border:none !important;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-radius:22px;
+  margin-bottom:18px;
 }
 
-#calendar {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:12px;
-}
-
-.calendar-day {
-  padding:10px 0;
-  text-align:center;
-  border-radius:10px;
+#month-header button {
+  background:none !important;
+  border:none !important;
+  font-size:22px !important;
   cursor:pointer;
-  font-size:15px;
-  background:#ffffff;
-  color:#000;
-  font-weight:500;
-  transition:0.15s;
+  color:#000 !important;
 }
 
-/* Mai nap – piros pötty */
-.calendar-day.today {
-  position:relative;
+#month-title {
+  font-size:18px !important;
+  font-weight:600 !important;
 }
 
-.calendar-day.today::after {
-  content:"";
-  width:6px;
-  height:6px;
-  background:#ef4444;
-  border-radius:50%;
-  position:absolute;
-  bottom:4px;
-  left:50%;
-  transform:translateX(-50%);
-}
-
-/* Kiválasztott nap – iOS kék */
-.calendar-day.selected {
-  background:#2563eb;
-  color:#fff;
-  font-weight:700;
-  box-shadow:0 0 0 2px #1e40af inset;
-}
-
-/* NAPI ÖSSZESÍTÉS – iOS FEHÉR */
+/* NAPI ÖSSZESÍTÉS (DAY SUMMARY) – iOS FEHÉR KÁRTYA */
 .day-summary-card {
-  background:#ffffff;
-  color:#000;
-  border:none;
+  background:#ffffff !important;
+  color:#000 !important;
+  border:none !important;
 }
 
 .day-summary-card .row {
@@ -215,47 +194,75 @@ input {
 }
 
 .day-summary-card .row span:first-child {
-  color:#6b7280;
+  color:#6b7280 !important; /* iOS szürke */
 }
 
 .day-summary-card .row span:last-child {
-  font-weight:600;
-  color:#111827;
+  font-weight:600 !important;
+  color:#111827 !important;
 }
 
-.overtime-positive { color:#16a34a; font-weight:700; }
-.overtime-negative { color:#dc2626; font-weight:700; }
-
-/* HÓNAPVÁLTÓ */
-#month-header {
-  background:#ffffff;
-  color:#000;
-  border:none;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:14px 18px;
-  border-radius:22px;
-  margin-bottom:18px;
+/* TÚLÓRA SZÍNEK */
+.overtime-positive { 
+  color:#16a34a !important; 
+  font-weight:700 !important; 
 }
 
-#month-header button {
-  background:none;
-  border:none;
-  font-size:22px;
-  cursor:pointer;
-  color:#000;
+.overtime-negative { 
+  color:#dc2626 !important; 
+  font-weight:700 !important; 
 }
 
-#month-title {
-  font-size:18px;
-  font-weight:600;
+/* NAPTÁR KÁRTYA – FEHÉR iOS */
+.calendar-card {
+  background:#ffffff !important;
+  color:#000 !important;
+  border:none !important;
 }
-</style>
-</head>
 
-<body>
-<div class="app">
+/* NAPTÁR RÁCS */
+#calendar {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:12px;
+}
+
+/* NAPTÁR NAP CELLÁK – FEHÉR iOS */
+.calendar-day {
+  padding:10px 0 !important;
+  text-align:center !important;
+  border-radius:10px !important;
+  cursor:pointer !important;
+  font-size:15px !important;
+  background:#ffffff !important;
+  color:#000 !important;
+  font-weight:500 !important;
+  transition:0.15s !important;
+  position:relative !important;
+}
+
+/* MAI NAP – PIROS PÖTTY */
+.calendar-day.today::after {
+  content:"" !important;
+  width:6px !important;
+  height:6px !important;
+  background:#ef4444 !important;
+  border-radius:50% !important;
+  position:absolute !important;
+  bottom:4px !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+}
+
+/* KIVÁLASZTOTT NAP – iOS KÉK */
+.calendar-day.selected {
+  background:#2563eb !important;
+  color:#fff !important;
+  font-weight:700 !important;
+  box-shadow:0 0 0 2px #1e40af inset !important;
+}
+
 
 <!-- MA OLDAL -->
 <div id="page-home" class="page active">
