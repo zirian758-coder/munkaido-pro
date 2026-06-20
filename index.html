@@ -326,17 +326,16 @@ function endWork() {
 function resetToday() {
     let d = today();
     delete db.days[d];
-    saveDB();
+    saveDB();   // ← EZ A HELYES
 
-    // UI AZONNALI FRISSÍTÉSE
     today_presence.innerText = "00:00:00";
     today_breaks.innerText = "00:00:00";
     today_overtime.innerHTML = "—";
     timeline.innerHTML = "";
 
-    // oldal újratöltése
     location.reload();
 }
+
 
 
 /* -------------------------
