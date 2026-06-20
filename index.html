@@ -405,9 +405,18 @@ function updateDifference(){
   saveDB();
 }
 
-function ensureDay(d){
-  if(!db.days[d]) db.days[d] = {start:"",end:"",breaks:[],manualOvertime:undefined};
+function ensure(d) {
+    if (!db.days[d]) {
+        db.days[d] = {
+            start: null,
+            end: null,
+            breaks: [],
+            manualOvertime: undefined
+        };
+    }
+    return db.days[d];
 }
+
 
 function today(){ return new Date().toISOString().slice(0,10); }
 function now(){ return new Date().toTimeString().slice(0,8); }
