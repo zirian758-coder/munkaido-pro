@@ -146,15 +146,17 @@ input {
 <!-- MA OLDAL – iOS sorrend: Gombok → Részletek+Szünetek → Összegzés -->
 <div id="page-home" class="page active">
 
-  <!-- MŰVELETEK -->
-  <div class="card">
+    <div class="reset-top-btn" onclick="resetToday()">⟳</div>
+
+    <!-- MŰVELETEK -->
+    <div class="card">
     <div class="card-title">📊 Mai összegzés</div>
     <button class="btn-start" onclick="startWork()">▶ Munkakezdés</button>
     <button class="btn-break" onclick="startBreak()">☕ Szünet kezdete</button>
     <button class="btn-break" onclick="endBreak()">🔙 Szünet vége</button>
     <button class="btn-end" onclick="endWork()">⏹ Munka vége</button>
 
-    <button onclick="resetToday()" class="reset-btn">⟳ Reset nap</button>
+
 
   </div>
 
