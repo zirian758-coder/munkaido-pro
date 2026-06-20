@@ -303,9 +303,11 @@ function endWork() {
     }
 
     if (day.end) {
-        alert("A munka már le van zárva.");
-        return;
-    }
+    today_overtime.innerHTML = formatOvertime(overtime);
+} else {
+    today_overtime.innerHTML = "—";
+}
+
 
     if (day.breaks.some(b => !b.end)) {
         alert("Van nyitott szünet!");
