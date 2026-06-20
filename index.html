@@ -31,7 +31,7 @@ body {
   margin:auto;
 }
 
-.page { display:none; }
+.page { display:none; position:relative; }
 .page.active { display:block; }
 
 /* iOS kártya */
@@ -76,10 +76,7 @@ button {
   box-shadow:0 4px 12px rgba(0,0,0,0.25);
 }
 
-button:active {
-  transform:scale(0.97);
-  opacity:0.9;
-}
+button:active { transform:scale(0.97); opacity:0.9; }
 
 .btn-start { background:#16a34a; }
 .btn-break { background:#d97706; }
@@ -96,28 +93,7 @@ input {
   font-size:15px;
 }
 
-.bottom-nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111318ee;
-  backdrop-filter:blur(14px);
-  display:flex;
-  justify-content:space-between;
-  padding:10px 12px;
-  border-top:1px solid #2a2d33;
-}
-
-.nav-item {
-  flex:1;
-  text-align:center;
-  color:var(--muted);
-  font-size:13px;
-  padding:8px 6px;
-  border-radius:14px;
-}
-
+/* RESET gomb */
 .reset-top-btn {
     position: absolute;
     top: 12px;
@@ -135,17 +111,52 @@ input {
     cursor: pointer;
     box-shadow: var(--shadow);
     z-index: 999;
-  }
+}
 
+/* iOS NAV – ikon + felirat */
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111318ee;
+  backdrop-filter:blur(14px);
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-top:1px solid #2a2d33;
+}
+
+.nav-item {
+  flex:1;
+  text-align:center;
+  color:var(--muted);
+  padding:6px 0;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+}
+
+.nav-icon {
+  font-size:20px;
+  line-height:20px;
+}
+
+.nav-label {
+  font-size:11px;
+  margin-top:2px;
+}
 
 .nav-item.active {
-  background:#2563eb33;
   color:#fff;
+  background:#2563eb33;
 }
-/* Naptár oldal – napi összesítés sorok */
-#day-summary h3 {
-  margin-bottom: 8px;
-}
+
+/* Naptár oldal – napi összesítés */
+#day-summary h3 { margin-bottom: 8px; }
 
 #day-summary .row {
   display: flex;
@@ -177,19 +188,8 @@ input {
   color: var(--fg);
 }
 
-.calendar-day.today {
-  border: 1px solid var(--accent);
-}
-
-.calendar-day.selected {
-  background: var(--accent);
-  color: #000;
-}
-
-/* fontos: a page legyen relatív, hogy a pozíciók jól működjenek */
-.page {
-  position: relative;
-}
+.calendar-day.today { border: 1px solid var(--accent); }
+.calendar-day.selected { background: var(--accent); color: #000; }
 
 </style>
 </head>
@@ -197,68 +197,55 @@ input {
 <body>
 <div class="app">
 
-<!-- MA OLDAL – iOS sorrend: Gombok → Részletek+Szünetek → Összegzés -->
+<!-- MA OLDAL -->
 <div id="page-home" class="page active">
 
     <div class="reset-top-btn" onclick="resetToday()">⟳</div>
 
-    <!-- MŰVELETEK -->
     <div class="card">
-    <div class="card-title">📊 Mai összegzés</div>
-    <button class="btn-start" onclick="startWork()">▶ Munkakezdés</button>
-    <button class="btn-break" onclick="startBreak()">☕ Szünet kezdete</button>
-    <button class="btn-break" onclick="endBreak()">🔙 Szünet vége</button>
-    <button class="btn-end" onclick="endWork()">⏹ Munka vége</button>
+      <div class="card-title">📊 Mai összegzés</div>
+      <button class="btn-start" onclick="startWork()">▶ Munkakezdés</button>
+      <button class="btn-break" onclick="startBreak()">☕ Szünet kezdete</button>
+      <button class="btn-break" onclick="endBreak()">🔙 Szünet vége</button>
+      <button class="btn-end" onclick="endWork()">⏹ Munka vége</button>
+    </div>
 
+    <div class="card">
+      <div class="card-title">📄 Részletek</div>
+      <div id="timeline"></div>
+    </div>
 
+    <div class="card">
+      <div class="card-title">🎛 Mai összegzés</div>
 
-  </div>
+      <div class="metric">Jelenlét</div>
+      <div class="metric-value" id="today_presence">00:00:00</div>
 
-  <!-- RÉSZLETEK + SZÜNETEK (IDŐRENDI) -->
-  <div class="card">
-    <div class="card-title">📄 Részletek</div>
-    <div id="timeline"></div>
-  </div>
+      <div class="metric">Szünet</div>
+      <div class="metric-value" id="today_breaks">00:00:00</div>
 
-  <!-- ÖSSZEGZÉS -->
-  <div class="card">
-    <div class="card-title">🎛 Mai összegzés</div>
-
-    <div class="metric">Jelenlét</div>
-    <div class="metric-value" id="today_presence">00:00:00</div>
-
-    <div class="metric">Szünet</div>
-    <div class="metric-value" id="today_breaks">00:00:00</div>
-
-    <div class="metric">Túlóra</div>
-    <div class="metric-value" id="today_overtime"></div>
-  </div>
+      <div class="metric">Túlóra</div>
+      <div class="metric-value" id="today_overtime"></div>
+    </div>
 
 </div>
-<!-- NAPTÁR -->
+
 <!-- NAPTÁR OLDAL -->
 <div id="page-calendar" class="page">
 
-  <!-- NAPI ÖSSZESÍTÉS KÁRTYA -->
   <div id="day-summary" class="card"></div>
-
-  <!-- NAPTÁR RÁCS -->
   <div id="calendar" class="card"></div>
 
 </div>
 
-
-</div>
-<!-- TÚLÓRA -->
+<!-- TÚLÓRA OLDAL -->
 <div id="page-overtime" class="page">
 
   <div class="card">
     <div class="card-title">🔧 App óraállás</div>
-
     <div id="lockStateBox" class="entry" style="text-align:center;font-weight:600;">
       🔒 Zárolva – feloldáshoz koppintson
     </div>
-
     <input id="appBalance" type="number" step="0.01" readonly>
     <button onclick="toggleLock()">🔓 Feloldás / Zárolás</button>
   </div>
@@ -283,10 +270,29 @@ input {
 
 </div> <!-- app vége -->
 
+<!-- iOS NAV – ikon + felirat -->
 <div class="bottom-nav">
-  <div id="nav-page-home" class="nav-item active" onclick="showPage('page-home')">🏠 Ma</div>
-  <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime')">⏱ Túlóra</div>
+
+  <div id="nav-page-home" class="nav-item active"
+       onclick="showPage('page-home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Ma</div>
+  </div>
+
+  <div id="nav-page-calendar" class="nav-item"
+       onclick="showPage('page-calendar'); initCalendarPage();">
+      <div class="nav-icon">📅</div>
+      <div class="nav-label">Naptár</div>
+  </div>
+
+  <div id="nav-page-overtime" class="nav-item"
+       onclick="showPage('page-overtime')">
+      <div class="nav-icon">⏱</div>
+      <div class="nav-label">Túlóra</div>
+  </div>
+
 </div>
+
 <script>
 let db = { days:{}, appBalance:0, companyBalance:0, locked:true };
 
