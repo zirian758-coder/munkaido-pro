@@ -3,265 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Munkaidő PRO – iOS Edition</title>
 
 <style>
-:root {
-  --bg:#0c0d10;
-  --fg:#ffffff;
-  --card:#16181d;
-  --muted:#8a8f99;
-  --accent:#3b82f6;
-  --danger:#ef4444;
-  --success:#22c55e;
-  --shadow:0 8px 22px rgba(0,0,0,0.35);
+/* IDE JÖN A TELJES CSS – A KÖVETKEZŐ ÜZENETBEN KÜLDÖM */
+</style>
 
-  --ios-white:#ffffff;
-  --ios-black:#000000;
-  --ios-gray:#6b7280;
-}
+</head>
+<body>
 
-/* ALAP */
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--fg);
-  font-family:-apple-system,system-ui;
-}
-
-.app {
-  padding:16px 14px 100px;
-  max-width:900px;
-  margin:auto;
-}
-
-.page { display:none; position:relative; }
-.page.active { display:block; }
-
-/* iOS kártya */
-.card {
-  background:var(--card);
-  padding:18px;
-  border-radius:22px;
-  margin:18px 0;
-  box-shadow:var(--shadow);
-  border:1px solid #1f2126;
-}
-
-.card-title {
-  font-size:18px;
-  font-weight:600;
-  margin-bottom:12px;
-}
-
-/* RESET gomb */
-.reset-top-btn {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    background: var(--card);
-    color: var(--fg);
-    border: 1px solid #1f2126;
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    z-index: 999;
-}
-
-/* GOMBOK */
-button {
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:none;
-  margin:8px 0;
-  font-size:16px;
-  color:#fff;
-  font-weight:600;
-  background:#2563eb;
-  box-shadow:0 4px 12px rgba(0,0,0,0.25);
-}
-
-button:active { transform:scale(0.97); opacity:0.9; }
-
-.btn-start { background:#16a34a; }
-.btn-break { background:#d97706; }
-.btn-end { background:#dc2626; }
-
-/* INPUTOK */
-input {
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid #2a2d33;
-  background:#0f1115;
-  color:#fff;
-  margin:6px 0;
-  font-size:15px;
-}
-
-/* iOS NAV – ikon + felirat */
-.bottom-nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111318ee;
-  backdrop-filter:blur(14px);
-  display:flex;
-  justify-content:space-between;
-  padding:10px 12px;
-  border-top:1px solid #2a2d33;
-}
-
-.nav-item {
-  flex:1;
-  text-align:center;
-  color:var(--muted);
-  padding:6px 0;
-  border-radius:12px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-}
-
-.nav-icon {
-  font-size:20px;
-  line-height:20px;
-}
-
-.nav-label {
-  font-size:11px;
-  margin-top:2px;
-}
-
-.nav-item.active {
-  color:#fff;
-  background:#2563eb33;
-}
-
-/* -------------------------
-   iOS NAPTÁR – SÖTÉT TÉMA (STABIL)
--------------------------- */
-
-/* HÓNAPVÁLTÓ FEJLÉC */
-#month-header {
-  background:#16181d !important;
-  color:#fff !important;
-  border:1px solid #1f2126 !important;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:14px 18px;
-  border-radius:22px;
-  margin-bottom:18px;
-}
-
-#month-header button {
-  background:none !important;
-  border:none !important;
-  font-size:22px !important;
-  cursor:pointer;
-  color:#fff !important;
-}
-
-#month-title {
-  font-size:18px !important;
-  font-weight:600 !important;
-}
-
-/* NAPI ÖSSZESÍTÉS – SÖTÉT iOS KÁRTYA */
-.day-summary-card {
-  background:#16181d !important;
-  color:#fff !important;
-  border:1px solid #1f2126 !important;
-}
-
-.day-summary-card .row {
-  display:flex;
-  justify-content:space-between;
-  padding:6px 0;
-  font-size:16px;
-}
-
-.day-summary-card .row span:first-child {
-  color:#8a8f99 !important;
-}
-
-.day-summary-card .row span:last-child {
-  font-weight:600 !important;
-  color:#ffffff !important;
-}
-
-/* TÚLÓRA SZÍNEK */
-.overtime-positive { 
-  color:#22c55e !important; 
-  font-weight:700 !important; 
-}
-
-.overtime-negative { 
-  color:#ef4444 !important; 
-  font-weight:700 !important; 
-}
-
-/* NAPTÁR KÁRTYA – SÖTÉT */
-.calendar-card {
-  background:#16181d !important;
-  color:#fff !important;
-  border:1px solid #1f2126 !important;
-}
-
-/* NAPTÁR RÁCS */
-#calendar {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:12px;
-}
-
-/* NAPTÁR NAP CELLÁK – SÖTÉT iOS (NEM FEKETE!) */
-.calendar-day {
-  padding:10px 0 !important;
-  text-align:center !important;
-  border-radius:10px !important;
-  cursor:pointer !important;
-  font-size:15px !important;
-  background:#1b1d22 !important;   /* <<< EZ A JÓ SÖTÉTSZÜRKE */
-  color:#fff !important;
-  font-weight:500 !important;
-  transition:0.15s !important;
-  position:relative !important;
-}
-
-/* MAI NAP – PIROS PÖTTY */
-.calendar-day.today::after {
-  content:"" !important;
-  width:6px !important;
-  height:6px !important;
-  background:#ef4444 !important;
-  border-radius:50% !important;
-  position:absolute !important;
-  bottom:4px !important;
-  left:50% !important;
-  transform:translateX(-50%) !important;
-}
-
-/* KIVÁLASZTOTT NAP – iOS KÉK */
-.calendar-day.selected {
-  background:#2563eb !important;
-  color:#fff !important;
-  font-weight:700 !important;
-  box-shadow:0 0 0 2px #1e40af inset !important;
-}
+<div class="app">
 
 <!-- MA OLDAL -->
 <div id="page-home" class="page active">
@@ -306,10 +57,10 @@ input {
       <button onclick="nextMonth()">➡️</button>
   </div>
 
-  <!-- NAPI ÖSSZESÍTÉS FELÜL -->
+  <!-- NAPI ÖSSZESÍTÉS -->
   <div id="day-summary" class="card day-summary-card"></div>
 
-  <!-- NAPTÁR RÁCS ALUL -->
+  <!-- NAPTÁR RÁCS -->
   <div id="calendar" class="card calendar-card"></div>
 
 </div>
@@ -368,46 +119,368 @@ input {
   </div>
 
 </div>
+
 <script>
+/* IDE JÖN A TELJES SCRIPT – A 3. ÜZENETBEN KÜLDÖM */
+</script>
+
+</body>
+</html>
+/* -------------------------
+   ALAPSZÍNEK
+-------------------------- */
+:root {
+  --bg:#0c0d10;
+  --fg:#ffffff;
+  --card:#16181d;
+  --muted:#8a8f99;
+  --accent:#3b82f6;
+  --danger:#ef4444;
+  --success:#22c55e;
+  --shadow:0 8px 22px rgba(0,0,0,0.35);
+}
+
+/* -------------------------
+   ALAP LAYOUT
+-------------------------- */
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:-apple-system,system-ui;
+}
+
+.app {
+  padding:16px 14px 100px;
+  max-width:900px;
+  margin:auto;
+}
+
+.page { display:none; position:relative; }
+.page.active { display:block; }
+
+/* -------------------------
+   KÁRTYÁK
+-------------------------- */
+.card {
+  background:var(--card);
+  padding:18px;
+  border-radius:22px;
+  margin:18px 0;
+  box-shadow:var(--shadow);
+  border:1px solid #1f2126;
+}
+
+.card-title {
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+/* -------------------------
+   GOMBOK
+-------------------------- */
+button {
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  margin:8px 0;
+  font-size:16px;
+  color:#fff;
+  font-weight:600;
+  background:#2563eb;
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+button:active { transform:scale(0.97); opacity:0.9; }
+
+.btn-start { background:#16a34a; }
+.btn-break { background:#d97706; }
+.btn-end { background:#dc2626; }
+
+/* -------------------------
+   INPUTOK
+-------------------------- */
+input {
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid #2a2d33;
+  background:#0f1115;
+  color:#fff;
+  margin:6px 0;
+  font-size:15px;
+}
+
+/* -------------------------
+   RESET GOMB
+-------------------------- */
+.reset-top-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--card);
+    color: var(--fg);
+    border: 1px solid #1f2126;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    z-index: 999;
+}
+
+/* -------------------------
+   iOS NAV
+-------------------------- */
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111318ee;
+  backdrop-filter:blur(14px);
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-top:1px solid #2a2d33;
+}
+
+.nav-item {
+  flex:1;
+  text-align:center;
+  color:var(--muted);
+  padding:6px 0;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+}
+
+.nav-icon {
+  font-size:20px;
+  line-height:20px;
+}
+
+.nav-label {
+  font-size:11px;
+  margin-top:2px;
+}
+
+.nav-item.active {
+  color:#fff;
+  background:#2563eb33;
+}
+
+/* -------------------------
+   EGYEDI iOS DARK NAPTÁR
+-------------------------- */
+
+/* HÓNAPVÁLTÓ */
+#month-header {
+  background:#1a1c20;
+  color:#fff;
+  border:1px solid #2a2d33;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-radius:18px;
+  margin-bottom:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+#month-header button {
+  background:none;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#fff;
+  padding:4px 10px;
+  border-radius:10px;
+  transition:0.15s;
+}
+
+#month-header button:hover {
+  background:#2a2d33;
+}
+
+#month-title {
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:0.3px;
+}
+
+/* NAPI ÖSSZESÍTÉS */
+.day-summary-card {
+  background:#16181d;
+  color:#fff;
+  border:1px solid #2a2d33;
+  border-radius:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+.day-summary-card .row {
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  font-size:16px;
+}
+
+.day-summary-card .row span:first-child {
+  color:#8a8f99;
+}
+
+.day-summary-card .row span:last-child {
+  font-weight:600;
+  color:#ffffff;
+}
+
+/* TÚLÓRA SZÍNEK */
+.overtime-positive { color:#22c55e; font-weight:700; }
+.overtime-negative { color:#ef4444; font-weight:700; }
+
+/* NAPTÁR KÁRTYA */
+.calendar-card {
+  background:#16181d;
+  color:#fff;
+  border:1px solid #2a2d33;
+  border-radius:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.35);
+}
+
+/* NAPTÁR RÁCS */
+#calendar {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+  margin-top:12px;
+}
+
+/* NAP CELLÁK */
+.calendar-day {
+  padding:12px 0;
+  text-align:center;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:15px;
+  background:#1f2126;
+  color:#fff;
+  font-weight:500;
+  transition:0.15s;
+  position:relative;
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.calendar-day:hover {
+  background:#2a2d33;
+}
+
+/* MAI NAP – PIROS PÖTTY */
+.calendar-day.today::after {
+  content:"";
+  width:6px;
+  height:6px;
+  background:#ef4444;
+  border-radius:50%;
+  position:absolute;
+  bottom:6px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* KIVÁLASZTOTT NAP – KÉK */
+.calendar-day.selected {
+  background:#2563eb;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 0 0 3px #1e40af inset;
+  transform:scale(1.05);
+}
 /* -------------------------
    ADATBÁZIS
 -------------------------- */
-let db = { days:{}, appBalance:0, companyBalance:0, locked:true };
+let db = { 
+    days:{}, 
+    appBalance:0, 
+    companyBalance:0, 
+    locked:true 
+};
 
 /* -------------------------
    LOAD / SAVE
 -------------------------- */
 function loadDB(){
-  let r = localStorage.getItem("munkapro_ios");
-  if(r) db = JSON.parse(r);
-  updateUI();
+    let r = localStorage.getItem("munkapro_ios");
+    if(r) db = JSON.parse(r);
+    updateUI();
 }
+
 function saveDB(){
-  localStorage.setItem("munkapro_ios", JSON.stringify(db));
-  updateUI();
+    localStorage.setItem("munkapro_ios", JSON.stringify(db));
+    updateUI();
 }
 
 /* -------------------------
    OLDALVÁLTÁS
 -------------------------- */
 function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
 
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  document.getElementById("nav-"+id).classList.add("active");
+    document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+    document.getElementById("nav-"+id).classList.add("active");
 
-  updateUI();
+    updateUI();
+}
+
+/* -------------------------
+   SEGÉDFÜGGVÉNYEK
+-------------------------- */
+function today(){ return new Date().toISOString().slice(0,10); }
+function now(){ return new Date().toTimeString().slice(0,8); }
+
+function pad(n){ return n.toString().padStart(2,"0"); }
+
+function diffTime(a,b){
+    if(!a||!b) return 0;
+    return (new Date("2000-01-01 "+b) - new Date("2000-01-01 "+a))/1000;
+}
+
+function format(s){
+    let h = Math.floor(s/3600),
+        m = Math.floor((s%3600)/60),
+        x = s%60;
+    return `${pad(h)}:${pad(m)}:${pad(x)}`;
+}
+
+function ensure(d){
+    if(!db.days[d]){
+        db.days[d] = {
+            start:null,
+            end:null,
+            breaks:[],
+            manualOvertime:undefined
+        };
+    }
+    return db.days[d];
 }
 
 /* -------------------------
    MUNKA KEZDÉSE / VÉGE
 -------------------------- */
-function startWork() {
+function startWork(){
     let d = today();
     let day = ensure(d);
 
-    if (day.start) {
+    if(day.start){
         alert("A munka már el van indítva.");
         return;
     }
@@ -416,21 +489,21 @@ function startWork() {
     saveDB();
 }
 
-function endWork() {
+function endWork(){
     let d = today();
     let day = ensure(d);
 
-    if (!day.start) {
+    if(!day.start){
         alert("A munka még nincs elindítva.");
         return;
     }
 
-    if (day.end) {
+    if(day.end){
         alert("A munka már le van zárva.");
         return;
     }
 
-    if (day.breaks.some(b => !b.end)) {
+    if(day.breaks.some(b=>!b.end)){
         alert("Van nyitott szünet!");
         return;
     }
@@ -440,214 +513,177 @@ function endWork() {
 }
 
 /* -------------------------
-   RESET NAP
--------------------------- */
-function resetToday() {
-    let d = today();
-    delete db.days[d];
-    saveDB();
-
-    today_presence.innerText = "00:00:00";
-    today_breaks.innerText = "00:00:00";
-    today_overtime.innerHTML = "—";
-    timeline.innerHTML = "";
-
-    location.reload();
-}
-
-/* -------------------------
-   SZÜNET KEZDÉSE / VÉGE
+   SZÜNET
 -------------------------- */
 function startBreak(){
-  let d = today();
-  let day = ensure(d);
+    let d = today();
+    let day = ensure(d);
 
-  if (!day.start) {
-    alert("A munka még nincs elindítva.");
-    return;
-  }
+    if(!day.start){
+        alert("A munka még nincs elindítva.");
+        return;
+    }
 
-  if (day.breaks.some(b => !b.end)) {
-    alert("Már van egy nyitott szünet.");
-    return;
-  }
+    if(day.breaks.some(b=>!b.end)){
+        alert("Már van egy nyitott szünet.");
+        return;
+    }
 
-  day.breaks.push({start:now(),end:null});
-  saveDB();
+    day.breaks.push({start:now(), end:null});
+    saveDB();
 }
 
 function endBreak(){
-  let d = today();
-  let day = ensure(d);
+    let d = today();
+    let day = ensure(d);
 
-  let br = day.breaks;
-  if(br.length && br[br.length-1].end===null) {
-      br[br.length-1].end = now();
-      saveDB();
-  } else {
-      alert("Nincs nyitott szünet.");
-  }
+    let br = day.breaks;
+    if(br.length && br[br.length-1].end===null){
+        br[br.length-1].end = now();
+        saveDB();
+    } else {
+        alert("Nincs nyitott szünet.");
+    }
+}
+
+/* -------------------------
+   RESET NAP
+-------------------------- */
+function resetToday(){
+    let d = today();
+    delete db.days[d];
+    saveDB();
+    location.reload();
 }
 
 /* -------------------------
    LOCK / KÜLÖNBSÉG
 -------------------------- */
 function toggleLock(){
-  db.locked = !db.locked;
-  if(!db.locked){
-    db.appBalance = parseFloat(appBalance.value) || 0;
-  }
-  saveDB();
+    db.locked = !db.locked;
+    if(!db.locked){
+        db.appBalance = parseFloat(appBalance.value) || 0;
+    }
+    saveDB();
 }
 
 function updateDifference(){
-  db.companyBalance = parseFloat(companyBalance.value) || 0;
-  saveDB();
-}
-
-/* -------------------------
-   NAP LÉTREHOZÁSA
--------------------------- */
-function ensure(d) {
-    if (!db.days[d]) {
-        db.days[d] = {
-            start: null,
-            end: null,
-            breaks: [],
-            manualOvertime: undefined
-        };
-    }
-    return db.days[d];
-}
-
-/* -------------------------
-   SEGÉDFÜGGVÉNYEK
--------------------------- */
-function today(){ return new Date().toISOString().slice(0,10); }
-function now(){ return new Date().toTimeString().slice(0,8); }
-
-function diffTime(a,b){
-  if(!a||!b) return 0;
-  return (new Date("2000-01-01 "+b) - new Date("2000-01-01 "+a))/1000;
-}
-
-function format(s){
-  let h = Math.floor(s/3600),
-      m = Math.floor((s%3600)/60),
-      x = s%60;
-  return `${pad(h)}:${pad(m)}:${pad(x)}`;
-}
-
-function pad(n){ return n.toString().padStart(2,"0"); }
-
-/* -------------------------
-   FŐ UI FRISSÍTÉS
--------------------------- */
-function updateUI(){
-  /* LOCK */
-  lockStateBox.innerHTML = db.locked
-    ? "🔒 Zárolva – feloldáshoz koppintson"
-    : "🔓 Feloldva – szerkeszthető";
-  lockStateBox.style.background = db.locked ? "#7f1d1d" : "#14532d";
-  appBalance.readOnly = db.locked;
-
-  appBalance.value    = db.appBalance;
-  companyBalance.value= db.companyBalance;
-
-  let diff = db.companyBalance - db.appBalance;
-  balanceDiff.innerText = diff.toFixed(2);
-  balanceDiff.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
-
-  /* TÚLÓRA LISTA */
-  overtimeList.innerHTML = "";
-  let total = 0;
-
-  Object.keys(db.days).forEach(d=>{
-    let day = db.days[d];
-    let presence = diffTime(day.start,day.end);
-    let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
-    let net = presence - breakSec;
-    let overtime = day.manualOvertime !== undefined ? day.manualOvertime : (net/3600)-8;
-    total += overtime;
-
-    overtimeList.innerHTML += `
-      <div class="entry"><b>${d}</b> – ${overtime.toFixed(2)} óra</div>
-    `;
-  });
-
-  totalOvertime.innerText = total.toFixed(2);
-
-  /* MAI NAP */
-  let d = today();
-  if (db.days[d]) {
-    let day = db.days[d];
-
-    let presence = diffTime(day.start, day.end);
-    let breakSec = 0;
-    day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
-
-    let net = presence - breakSec;
-    if (net < 0) net = 0;
-
-    let overtime = day.manualOvertime !== undefined
-      ? day.manualOvertime
-      : (net / 3600) - 8;
-
-    today_presence.innerText = format(presence);
-    today_breaks.innerText   = format(breakSec);
-    today_overtime.innerHTML = day.end
-      ? formatOvertime(overtime)
-      : "—";
-
-    renderTimeline(day);
-  }
+    db.companyBalance = parseFloat(companyBalance.value) || 0;
+    saveDB();
 }
 
 /* -------------------------
    IDŐVONAL
 -------------------------- */
-function renderTimeline(day) {
-  let events = [];
+function renderTimeline(day){
+    let events = [];
 
-  if (day.start)
-    events.push({ time: day.start, label: "🟢 Munkakezdés" });
+    if(day.start)
+        events.push({time:day.start, label:"🟢 Munkakezdés"});
 
-  day.breaks.forEach(b => {
-    if (b.start) events.push({ time: b.start, label: "☕ Szünet kezdete" });
-    if (b.end)   events.push({ time: b.end,   label: "🔙 Szünet vége" });
-  });
+    day.breaks.forEach(b=>{
+        if(b.start) events.push({time:b.start, label:"☕ Szünet kezdete"});
+        if(b.end)   events.push({time:b.end,   label:"🔙 Szünet vége"});
+    });
 
-  if (day.end)
-    events.push({ time: day.end, label: "⛔ Munka vége" });
+    if(day.end)
+        events.push({time:day.end, label:"⛔ Munka vége"});
 
-  events.sort((a,b)=>a.time.localeCompare(b.time));
+    events.sort((a,b)=>a.time.localeCompare(b.time));
 
-  timeline.innerHTML = "";
-  events.forEach(e => {
-    timeline.innerHTML += `
-      <div class="entry">
-        ${e.label}: <span>${e.time}</span>
-      </div>
-    `;
-  });
+    timeline.innerHTML = "";
+    events.forEach(e=>{
+        timeline.innerHTML += `
+            <div class="entry">${e.label}: <span>${e.time}</span></div>
+        `;
+    });
 }
 
 /* -------------------------
    TÚLÓRA FORMÁZÁS
 -------------------------- */
-function formatOvertime(overtimeHours) {
-  let minutes = Math.round(overtimeHours * 60);
-  let sign = minutes >= 0 ? "+" : "-";
-  let color = minutes >= 0 ? "var(--success)" : "var(--danger)";
+function formatOvertime(overtimeHours){
+    let minutes = Math.round(overtimeHours * 60);
+    let sign = minutes >= 0 ? "+" : "-";
+    let color = minutes >= 0 ? "var(--success)" : "var(--danger)";
 
-  return `
-    <span style="color:${color}; font-weight:700;">
-      ${sign}${Math.abs(overtimeHours).toFixed(2)}
-    </span>
-    <span style="color:${color};">
-      (${sign}${Math.abs(minutes)} perc)
-    </span>
-  `;
+    return `
+        <span style="color:${color}; font-weight:700;">
+            ${sign}${Math.abs(overtimeHours).toFixed(2)}
+        </span>
+        <span style="color:${color};">
+            (${sign}${Math.abs(minutes)} perc)
+        </span>
+    `;
+}
+
+/* -------------------------
+   FŐ UI FRISSÍTÉS
+-------------------------- */
+function updateUI(){
+    /* LOCK */
+    lockStateBox.innerHTML = db.locked
+        ? "🔒 Zárolva – feloldáshoz koppintson"
+        : "🔓 Feloldva – szerkeszthető";
+
+    lockStateBox.style.background = db.locked ? "#7f1d1d" : "#14532d";
+    appBalance.readOnly = db.locked;
+
+    appBalance.value = db.appBalance;
+    companyBalance.value = db.companyBalance;
+
+    let diff = db.companyBalance - db.appBalance;
+    balanceDiff.innerText = diff.toFixed(2);
+    balanceDiff.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
+
+    /* TÚLÓRA LISTA */
+    overtimeList.innerHTML = "";
+    let total = 0;
+
+    Object.keys(db.days).forEach(d=>{
+        let day = db.days[d];
+        let presence = diffTime(day.start, day.end);
+        let breakSec = 0; 
+        day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+
+        let net = presence - breakSec;
+        if(net < 0) net = 0;
+
+        let overtime = day.manualOvertime !== undefined
+            ? day.manualOvertime
+            : (net/3600) - 8;
+
+        total += overtime;
+
+        overtimeList.innerHTML += `
+            <div class="entry"><b>${d}</b> – ${overtime.toFixed(2)} óra</div>
+        `;
+    });
+
+    totalOvertime.innerText = total.toFixed(2);
+
+    /* MAI NAP */
+    let d = today();
+    if(db.days[d]){
+        let day = db.days[d];
+
+        let presence = diffTime(day.start, day.end);
+        let breakSec = 0;
+        day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+
+        let net = presence - breakSec;
+        if(net < 0) net = 0;
+
+        let overtime = day.manualOvertime !== undefined
+            ? day.manualOvertime
+            : (net/3600) - 8;
+
+        today_presence.innerText = format(presence);
+        today_breaks.innerText   = format(breakSec);
+        today_overtime.innerHTML = day.end ? formatOvertime(overtime) : "—";
+
+        renderTimeline(day);
+    }
 }
 
 /* -------------------------
@@ -655,38 +691,39 @@ function formatOvertime(overtimeHours) {
 -------------------------- */
 let currentCalendarDay = today();
 let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth(); // 0–11
+let currentMonth = new Date().getMonth();
 
-function formatDate(dateKey) {
+function formatDate(dateKey){
     const d = new Date(dateKey);
     const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
     const dayName = days[d.getDay()];
     const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
     return `${y}.${m}.${day}. (${dayName})`;
 }
 
-function calcBreakTotal(breaks) {
-    if (!breaks || breaks.length === 0) return { minutes: 0, seconds: 0 };
+function calcBreakTotal(breaks){
+    if(!breaks || breaks.length===0) return {minutes:0, seconds:0};
 
     let totalSec = 0;
-    for (let b of breaks) {
-        if (b.start && b.end) {
+    for(let b of breaks){
+        if(b.start && b.end){
             totalSec += diffTime(b.start, b.end);
         }
     }
 
-    const minutes = Math.floor(totalSec / 60);
-    const seconds = totalSec % 60;
-    return { minutes, seconds };
+    return {
+        minutes: Math.floor(totalSec/60),
+        seconds: totalSec % 60
+    };
 }
 
-function renderDaySummary(dateKey) {
+function renderDaySummary(dateKey){
     const daySummary = document.getElementById("day-summary");
     const day = db.days[dateKey];
 
-    if (!day) {
+    if(!day){
         daySummary.innerHTML = `
             <h3>${formatDate(dateKey)}</h3>
             <p>Nincs adat ehhez a naphoz.</p>
@@ -700,12 +737,15 @@ function renderDaySummary(dateKey) {
         : "";
 
     let presence = diffTime(day.start, day.end);
-    let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+    let breakSec = 0; 
+    day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+
     let net = presence - breakSec;
-    if (net < 0) net = 0;
+    if(net < 0) net = 0;
+
     let overtime = day.manualOvertime !== undefined
         ? day.manualOvertime
-        : (net / 3600) - 8;
+        : (net/3600) - 8;
 
     const overtimeClass = overtime >= 0 ? "overtime-positive" : "overtime-negative";
 
@@ -720,9 +760,8 @@ function renderDaySummary(dateKey) {
         <div class="row">
             <span>Szünet:</span>
             <span>
-                ${day.breaks && day.breaks[0]?.start ? day.breaks[0].start : "—"}
-                –
-                ${day.breaks && day.breaks[0]?.end ? day.breaks[0].end : "—"}
+                ${day.breaks[0]?.start ?? "—"} –
+                ${day.breaks[0]?.end ?? "—"}
                 <strong class="break-total">${breakText}</strong>
             </span>
         </div>
@@ -739,34 +778,38 @@ function renderDaySummary(dateKey) {
     `;
 }
 
-function renderCalendar() {
+function renderCalendar(){
     const cal = document.getElementById("calendar");
     cal.innerHTML = "";
 
     const first = new Date(currentYear, currentMonth, 1);
-    const last = new Date(currentYear, currentMonth + 1, 0);
+    const last = new Date(currentYear, currentMonth+1, 0);
     const daysInMonth = last.getDate();
     const startWeekday = first.getDay();
 
-    const monthNames = ["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December"];
+    const monthNames = [
+        "Január","Február","Március","Április","Május","Június",
+        "Július","Augusztus","Szeptember","Október","November","December"
+    ];
+
     document.getElementById("month-title").innerText =
         `${monthNames[currentMonth]} ${currentYear}`;
 
-    for (let i = 0; i < startWeekday; i++) {
+    for(let i=0;i<startWeekday;i++){
         const empty = document.createElement("div");
         cal.appendChild(empty);
     }
 
-    for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    for(let d=1; d<=daysInMonth; d++){
+        const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
         const el = document.createElement("div");
         el.className = "calendar-day";
         el.textContent = d;
 
-        if (dateKey === today()) el.classList.add("today");
-        if (dateKey === currentCalendarDay) el.classList.add("selected");
+        if(dateKey === today()) el.classList.add("today");
+        if(dateKey === currentCalendarDay) el.classList.add("selected");
 
-        el.onclick = () => {
+        el.onclick = ()=>{
             currentCalendarDay = dateKey;
             renderDaySummary(dateKey);
             highlightCalendarSelection();
@@ -776,21 +819,21 @@ function renderCalendar() {
     }
 }
 
-function highlightCalendarSelection() {
+function highlightCalendarSelection(){
     const days = document.querySelectorAll("#calendar .calendar-day");
-    days.forEach(d => {
+    days.forEach(d=>{
         d.classList.remove("selected");
         const dayNum = d.textContent;
-        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
-        if (dateKey === currentCalendarDay) {
+        const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
+        if(dateKey === currentCalendarDay){
             d.classList.add("selected");
         }
     });
 }
 
-function prevMonth() {
+function prevMonth(){
     currentMonth--;
-    if (currentMonth < 0) {
+    if(currentMonth < 0){
         currentMonth = 11;
         currentYear--;
     }
@@ -798,9 +841,9 @@ function prevMonth() {
     renderDaySummary(currentCalendarDay);
 }
 
-function nextMonth() {
+function nextMonth(){
     currentMonth++;
-    if (currentMonth > 11) {
+    if(currentMonth > 11){
         currentMonth = 0;
         currentYear++;
     }
@@ -808,16 +851,16 @@ function nextMonth() {
     renderDaySummary(currentCalendarDay);
 }
 
-setInterval(() => {
+setInterval(()=>{
     const nowKey = today();
-    if (currentCalendarDay !== nowKey) {
+    if(currentCalendarDay !== nowKey){
         currentCalendarDay = nowKey;
         renderDaySummary(nowKey);
         highlightCalendarSelection();
     }
 }, 60000);
 
-function initCalendarPage() {
+function initCalendarPage(){
     currentCalendarDay = today();
     currentYear = new Date().getFullYear();
     currentMonth = new Date().getMonth();
@@ -829,4 +872,3 @@ function initCalendarPage() {
    INIT
 -------------------------- */
 loadDB();
-</script>
