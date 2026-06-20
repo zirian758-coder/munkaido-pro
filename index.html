@@ -294,6 +294,9 @@ input {
 </div>
 
 <script>
+/* -------------------------
+   ADATBÁZIS
+-------------------------- */
 let db = { days:{}, appBalance:0, companyBalance:0, locked:true };
 
 function loadDB(){
@@ -306,11 +309,16 @@ function saveDB(){
   updateUI();
 }
 
+/* -------------------------
+   OLDALVÁLTÁS
+-------------------------- */
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   document.getElementById("nav-"+id).classList.add("active");
+
   updateUI();
 }
 
@@ -573,7 +581,7 @@ function formatOvertime(overtimeHours) {
 
 let currentCalendarDay = today();
 
-function formatDate(dateKey) {
+    function formatDate(dateKey) {
     const d = new Date(dateKey);
     const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
     const dayName = days[d.getDay()];
@@ -709,7 +717,5 @@ function initCalendarPage() {
 
 loadDB();
 </script>
-
-
 </body>
 </html>
