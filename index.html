@@ -439,7 +439,11 @@ function updateUI(){
 
     today_presence.innerText = format(presence);
     today_breaks.innerText   = format(breakSec);
+    if (day.end) {
     today_overtime.innerHTML = formatOvertime(overtime);
+} else {
+    today_overtime.innerHTML = "—";
+}
 
     renderTimeline(day);
   }
