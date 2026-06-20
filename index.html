@@ -142,6 +142,55 @@ input {
   background:#2563eb33;
   color:#fff;
 }
+/* Naptár oldal – napi összesítés sorok */
+#day-summary h3 {
+  margin-bottom: 8px;
+}
+
+#day-summary .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 16px;
+}
+
+#day-summary .break-total {
+  color: var(--accent);
+  margin-left: 8px;
+}
+
+/* Naptár rács */
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.calendar-day {
+  padding: 6px 4px;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  background: #1b1d22;
+  color: var(--fg);
+}
+
+.calendar-day.today {
+  border: 1px solid var(--accent);
+}
+
+.calendar-day.selected {
+  background: var(--accent);
+  color: #000;
+}
+
+/* fontos: a page legyen relatív, hogy a pozíciók jól működjenek */
+.page {
+  position: relative;
+}
+
 </style>
 </head>
 
@@ -187,42 +236,17 @@ input {
 
 </div>
 <!-- NAPTÁR -->
+<!-- NAPTÁR OLDAL -->
 <div id="page-calendar" class="page">
 
-  <div class="card">
-    <div class="card-title">📅 Nap kiválasztása</div>
-    <input type="date" id="dayPicker" onchange="selectDay(this.value)">
-  </div>
+  <!-- NAPI ÖSSZESÍTÉS KÁRTYA -->
+  <div id="day-summary" class="card"></div>
 
-  <div class="card">
-    <div class="card-title">📝 Kézi időbevitel</div>
-    <label>Kezdés</label>
-    <input id="manualStart" type="time" step="1">
+  <!-- NAPTÁR RÁCS -->
+  <div id="calendar" class="card"></div>
 
-    <label>Befejezés</label>
-    <input id="manualEnd" type="time" step="1">
+</div>
 
-    <button onclick="saveManual()">Mentés</button>
-  </div>
-
-  <div class="card">
-    <div class="card-title">☕ Szünetek</div>
-    <div id="breakList"></div>
-    <button onclick="addBreak()">➕ Új szünet</button>
-  </div>
-
-  <div class="card">
-    <div class="card-title">📄 Napi összesítés</div>
-
-    <div class="entry">⏱ Jelenlét: <span id="sum_presence">00:00:00</span></div>
-    <div class="entry">☕ Szünet: <span id="sum_breaks">00:00:00</span></div>
-    <div class="entry">➕ Túlóra: <span id="sum_overtime">0.00</span></div>
-
-    <label style="margin-top:10px;">Túlóra kézi módosítása:</label>
-    <input id="manualOvertime" type="number" step="0.01">
-
-    <button onclick="saveManualOvertime()">Túlóra mentése</button>
-  </div>
 
 </div>
 <!-- TÚLÓRA -->
@@ -261,7 +285,7 @@ input {
 
 <div class="bottom-nav">
   <div id="nav-page-home" class="nav-item active" onclick="showPage('page-home')">🏠 Ma</div>
-  <div id="nav-page-calendar" class="nav-item" onclick="showPage('page-calendar')">📅 Naptár</div>
+<button onclick="showCalendarPage()">Naptár</button>
   <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime')">⏱ Túlóra</div>
 </div>
 <script>
@@ -618,6 +642,173 @@ function formatOvertime(overtimeHours) {
       (${sign}${Math.abs(minutes)} perc)
     </span>
   `;
+}
+
+// Aktuálisan kiválasztott naptári nap (YYYY-MM-DD)
+let currentCalendarDay = today();
+
+// Segéd: dátum formázása (YYYY-MM-DD -> 2026.06.20. (szombat))
+function formatDate(dateKey) {
+    const d = new Date(dateKey);
+    const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
+    const dayName = days[d.getDay()];
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}.${m}.${day}. (${dayName})`;
+}
+
+// Szünet összesen perc + mp
+function calcBreakTotal(breaks) {
+    if (!breaks || breaks.length === 0) return { minutes: 0, seconds: 0 };
+
+    let totalSec = 0;
+    for (let b of breaks) {
+        if (b.start && b.end) {
+            totalSec += toSeconds(b.end) - toSeconds(b.start);
+        }
+    }
+
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = totalSec % 60;
+    return { minutes, seconds };
+}
+
+// Túlóra szöveg (100-as + perc zárójelben) – igazítsd a saját logikádhoz
+function calcOvertimeText(day) {
+    // Itt a saját túlóra számításod jön – most csak példa:
+    // pl. day.overtime100 és day.overtimeMinutes
+    if (!day || day.overtime100 == null || day.overtimeMinutes == null) return "—";
+    const sign = day.overtime100 >= 0 ? "+" : "-";
+    const abs100 = Math.abs(day.overtime100);
+    const absMin = Math.abs(day.overtimeMinutes);
+    return `${sign}${abs100} (${absMin}p)`;
+}
+
+// Napi összesítés kártya kirajzolása
+function renderDaySummary(dateKey) {
+    const daySummary = document.getElementById("day-summary");
+    const day = db.days[dateKey];
+
+    if (!day) {
+        daySummary.innerHTML = `
+            <h3>${formatDate(dateKey)}</h3>
+            <p>Nincs adat ehhez a naphoz.</p>
+        `;
+        return;
+    }
+
+    const br = calcBreakTotal(day.breaks);
+    const breakText = (br.minutes || br.seconds)
+        ? `(${br.minutes}p ${br.seconds}mp)`
+        : "";
+
+    const overtimeText = calcOvertimeText(day);
+
+    daySummary.innerHTML = `
+        <h3>${formatDate(dateKey)}</h3>
+
+        <div class="row">
+            <span>Munka kezdete:</span>
+            <span>${day.start ?? "—"}</span>
+        </div>
+
+        <div class="row">
+            <span>Szünet:</span>
+            <span>
+                ${day.breaks && day.breaks[0]?.start ? day.breaks[0].start : "—"}
+                –
+                ${day.breaks && day.breaks[0]?.end ? day.breaks[0].end : "—"}
+                <strong class="break-total">${breakText}</strong>
+            </span>
+        </div>
+
+        <div class="row">
+            <span>Munka vége:</span>
+            <span>${day.end ?? "—"}</span>
+        </div>
+
+        <div class="row">
+            <span>Túlóra:</span>
+            <span>${overtimeText}</span>
+        </div>
+    `;
+}
+
+// Naptár kirajzolása (aktuális hónap)
+function renderCalendar() {
+    const cal = document.getElementById("calendar");
+    cal.innerHTML = "";
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0–11
+
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const daysInMonth = last.getDate();
+    const startWeekday = first.getDay(); // 0 vasárnap
+
+    // Üres cellák a hónap elejére
+    for (let i = 0; i < startWeekday; i++) {
+        const empty = document.createElement("div");
+        cal.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        const el = document.createElement("div");
+        el.className = "calendar-day";
+        el.textContent = d;
+
+        if (dateKey === today()) {
+            el.classList.add("today");
+        }
+        if (dateKey === currentCalendarDay) {
+            el.classList.add("selected");
+        }
+
+        el.onclick = () => {
+            currentCalendarDay = dateKey;
+            renderDaySummary(dateKey);
+            highlightCalendarSelection();
+        };
+
+        cal.appendChild(el);
+    }
+}
+
+// Kijelölt nap kiemelése a naptárban
+function highlightCalendarSelection() {
+    const days = document.querySelectorAll("#calendar .calendar-day");
+    days.forEach(d => {
+        d.classList.remove("selected");
+        const dayNum = d.textContent;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
+        if (dateKey === currentCalendarDay) {
+            d.classList.add("selected");
+        }
+    });
+}
+
+// Éjféli automatikus napváltás (percenként ellenőriz)
+setInterval(() => {
+    const nowKey = today();
+    if (currentCalendarDay !== nowKey) {
+        currentCalendarDay = nowKey;
+        renderDaySummary(nowKey);
+        highlightCalendarSelection();
+    }
+}, 60000);
+
+// Naptár oldal inicializálása – hívd meg, amikor a Naptár oldalra lépsz
+function initCalendarPage() {
+    currentCalendarDay = today();
+    renderCalendar();
+    renderDaySummary(currentCalendarDay);
 }
 
 loadDB();
