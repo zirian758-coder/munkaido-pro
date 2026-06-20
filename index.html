@@ -278,6 +278,9 @@ function showPage(id){
   updateUI();
 }
 
+/* -------------------------
+   MUNKA KEZDÉSE
+-------------------------- */
 function startWork() {
     let d = today();
     let day = ensure(d);
@@ -288,10 +291,12 @@ function startWork() {
     }
 
     day.start = now();
-    save();
-    updateUI();
+    saveDB();
 }
 
+/* -------------------------
+   MUNKA VÉGE
+-------------------------- */
 function endWork() {
     let d = today();
     let day = ensure(d);
@@ -302,11 +307,9 @@ function endWork() {
     }
 
     if (day.end) {
-    today_overtime.innerHTML = formatOvertime(overtime);
-} else {
-    today_overtime.innerHTML = "—";
-}
-
+        alert("A munka már le van zárva.");
+        return;
+    }
 
     if (day.breaks.some(b => !b.end)) {
         alert("Van nyitott szünet!");
@@ -314,32 +317,67 @@ function endWork() {
     }
 
     day.end = now();
-    save();
-    updateUI();
+    saveDB();
 }
+
+/* -------------------------
+   RESET NAP
+-------------------------- */
 function resetToday() {
     let d = today();
     delete db.days[d];
-    save();
+    saveDB();
+
+    // UI AZONNALI FRISSÍTÉSE
+    today_presence.innerText = "00:00:00";
+    today_breaks.innerText = "00:00:00";
+    today_overtime.innerHTML = "—";
+    timeline.innerHTML = "";
+
+    // oldal újratöltése
     location.reload();
 }
 
 
-
+/* -------------------------
+   SZÜNET KEZDÉSE / VÉGE
+-------------------------- */
 function startBreak(){
-  let d = today(); ensureDay(d);
-  db.days[d].breaks.push({start:now(),end:null});
-  saveDB();
-}
-function endBreak(){
-  let d = today(); ensureDay(d);
-  let br = db.days[d].breaks;
-  if(br.length && br[br.length-1].end===null) br[br.length-1].end = now();
+  let d = today();
+  let day = ensure(d);
+
+  if (!day.start) {
+    alert("A munka még nincs elindítva.");
+    return;
+  }
+
+  if (day.breaks.some(b => !b.end)) {
+    alert("Már van egy nyitott szünet.");
+    return;
+  }
+
+  day.breaks.push({start:now(),end:null});
   saveDB();
 }
 
+function endBreak(){
+  let d = today();
+  let day = ensure(d);
+
+  let br = day.breaks;
+  if(br.length && br[br.length-1].end===null) {
+      br[br.length-1].end = now();
+      saveDB();
+  } else {
+      alert("Nincs nyitott szünet.");
+  }
+}
+
+/* -------------------------
+   NAP KIVÁLASZTÁSA
+-------------------------- */
 function selectDay(d){
-  ensureDay(d);
+  ensure(d);
   let day = db.days[d];
   manualStart.value = day.start || "";
   manualEnd.value   = day.end   || "";
@@ -348,9 +386,12 @@ function selectDay(d){
   renderDaySummary(d);
 }
 
+/* -------------------------
+   KÉZI MENTÉSEK
+-------------------------- */
 function saveManual(){
   let d = dayPicker.value;
-  ensureDay(d);
+  ensure(d);
   db.days[d].start = manualStart.value;
   db.days[d].end   = manualEnd.value;
   saveDB();
@@ -359,7 +400,7 @@ function saveManual(){
 
 function addBreak(){
   let d = dayPicker.value;
-  ensureDay(d);
+  ensure(d);
   db.days[d].breaks.push({start:"",end:""});
   saveDB();
   renderBreaks(d);
@@ -384,7 +425,7 @@ function editBreak(d,i,f,v){
 
 function saveManualOvertime(){
   let d = dayPicker.value;
-  ensureDay(d);
+  ensure(d);
   let v = manualOvertime.value;
   if(v==="") delete db.days[d].manualOvertime;
   else db.days[d].manualOvertime = parseFloat(v);
@@ -392,6 +433,9 @@ function saveManualOvertime(){
   renderDaySummary(d);
 }
 
+/* -------------------------
+   LOCK
+-------------------------- */
 function toggleLock(){
   db.locked = !db.locked;
   if(!db.locked){
@@ -405,6 +449,9 @@ function updateDifference(){
   saveDB();
 }
 
+/* -------------------------
+   NAP LÉTREHOZÁSA
+-------------------------- */
 function ensure(d) {
     if (!db.days[d]) {
         db.days[d] = {
@@ -417,7 +464,9 @@ function ensure(d) {
     return db.days[d];
 }
 
-
+/* -------------------------
+   SEGÉDFÜGGVÉNYEK
+-------------------------- */
 function today(){ return new Date().toISOString().slice(0,10); }
 function now(){ return new Date().toTimeString().slice(0,8); }
 
@@ -435,6 +484,9 @@ function format(s){
 
 function pad(n){ return n.toString().padStart(2,"0"); }
 
+/* -------------------------
+   NAPI ÖSSZEGZÉS
+-------------------------- */
 function renderDaySummary(d){
   let day = db.days[d]; if(!day) return;
 
@@ -451,6 +503,9 @@ function renderDaySummary(d){
   updateUI();
 }
 
+/* -------------------------
+   UI FRISSÍTÉS
+-------------------------- */
 function updateUI(){
   /* LOCK */
   lockStateBox.innerHTML = db.locked
@@ -503,16 +558,17 @@ function updateUI(){
 
     today_presence.innerText = format(presence);
     today_breaks.innerText   = format(breakSec);
-    if (day.end) {
-    today_overtime.innerHTML = formatOvertime(overtime);
-} else {
-    today_overtime.innerHTML = "—";
-}
+    today_overtime.innerHTML = day.end
+      ? formatOvertime(overtime)
+      : "—";
 
     renderTimeline(day);
   }
 }
 
+/* -------------------------
+   IDŐVONAL
+-------------------------- */
 function renderTimeline(day) {
   let events = [];
 
@@ -527,7 +583,6 @@ function renderTimeline(day) {
   if (day.end)
     events.push({ time: day.end, label: "⛔ Munka vége" });
 
-  // IDŐREND
   events.sort((a,b)=>a.time.localeCompare(b.time));
 
   timeline.innerHTML = "";
@@ -540,6 +595,9 @@ function renderTimeline(day) {
   });
 }
 
+/* -------------------------
+   TÚLÓRA FORMÁZÁS
+-------------------------- */
 function formatOvertime(overtimeHours) {
   let minutes = Math.round(overtimeHours * 60);
   let sign = minutes >= 0 ? "+" : "-";
@@ -557,6 +615,7 @@ function formatOvertime(overtimeHours) {
 
 loadDB();
 </script>
+
 
 </body>
 </html>
