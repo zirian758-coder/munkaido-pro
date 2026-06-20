@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Munkaidő PRO – iOS Edition</title>
+
+<style>
+:root {
+  --bg:#0c0d10;
+  --fg:#ffffff;
+  --card:#16181d;
+  --muted:#8a8f99;
+  --accent:#3b82f6;
+  --danger:#ef4444;
+  --success:#22c55e;
+  --shadow:0 8px 22px rgba(0,0,0,0.35);
+}
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:-apple-system,system-ui;
+}
+
+.app {
+  padding:16px 14px 100px;
+  max-width:900px;
+  margin:auto;
+}
+
+.page { display:none; }
+.page.active { display:block; }
+
+/* iOS kártya */
+.card {
+  background:var(--card);
+  padding:18px;
+  border-radius:22px;
+  margin:18px 0;
+  box-shadow:var(--shadow);
+  border:1px solid #1f2126;
+}
+
+.card-title {
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+.entry {
+  background:#1f2126;
+  padding:12px;
+  border-radius:14px;
+  margin:6px 0;
+  border:1px solid #2a2d33;
+}
+
+.entry span { color:var(--accent); font-weight:600; }
+
+.metric { color:var(--muted); font-size:14px; margin-top:10px; }
+.metric-value { font-size:20px; font-weight:600; margin-bottom:6px; }
+
+button {
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  margin:8px 0;
+  font-size:16px;
+  color:#fff;
+  font-weight:600;
+  background:#2563eb;
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+button:active {
+  transform:scale(0.97);
+  opacity:0.9;
+}
+
+.btn-start { background:#16a34a; }
+.btn-break { background:#d97706; }
+.btn-end { background:#dc2626; }
+
+input {
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid #2a2d33;
+  background:#0f1115;
+  color:#fff;
+  margin:6px 0;
+  font-size:15px;
+}
+
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111318ee;
+  backdrop-filter:blur(14px);
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-top:1px solid #2a2d33;
+}
+
+.nav-item {
+  flex:1;
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  padding:8px 6px;
+  border-radius:14px;
+}
+
+.nav-item.active {
+  background:#2563eb33;
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<!-- MA OLDAL – iOS sorrend: Gombok → Részletek+Szünetek → Összegzés -->
+<div id="page-home" class="page active">
+
+  <!-- MŰVELETEK -->
+  <div class="card">
+    <div class="card-title">📊 Mai összegzés</div>
+    <button class="btn-start" onclick="startWork()">▶ Munkakezdés</button>
+    <button class="btn-break" onclick="startBreak()">☕ Szünet kezdete</button>
+    <button class="btn-break" onclick="endBreak()">🔙 Szünet vége</button>
+    <button class="btn-end" onclick="endWork()">⏹ Munka vége</button>
+  </div>
+
+  <!-- RÉSZLETEK + SZÜNETEK (IDŐRENDI) -->
+  <div class="card">
+    <div class="card-title">📄 Részletek</div>
+    <div id="timeline"></div>
+  </div>
+
+  <!-- ÖSSZEGZÉS -->
+  <div class="card">
+    <div class="card-title">🎛 Mai összegzés</div>
+
+    <div class="metric">Jelenlét</div>
+    <div class="metric-value" id="today_presence">00:00:00</div>
+
+    <div class="metric">Szünet</div>
+    <div class="metric-value" id="today_breaks">00:00:00</div>
+
+    <div class="metric">Túlóra</div>
+    <div class="metric-value" id="today_overtime"></div>
+  </div>
+
+</div>
+<!-- NAPTÁR -->
+<div id="page-calendar" class="page">
+
+  <div class="card">
+    <div class="card-title">📅 Nap kiválasztása</div>
+    <input type="date" id="dayPicker" onchange="selectDay(this.value)">
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Kézi időbevitel</div>
+    <label>Kezdés</label>
+    <input id="manualStart" type="time" step="1">
+
+    <label>Befejezés</label>
+    <input id="manualEnd" type="time" step="1">
+
+    <button onclick="saveManual()">Mentés</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">☕ Szünetek</div>
+    <div id="breakList"></div>
+    <button onclick="addBreak()">➕ Új szünet</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 Napi összesítés</div>
+
+    <div class="entry">⏱ Jelenlét: <span id="sum_presence">00:00:00</span></div>
+    <div class="entry">☕ Szünet: <span id="sum_breaks">00:00:00</span></div>
+    <div class="entry">➕ Túlóra: <span id="sum_overtime">0.00</span></div>
+
+    <label style="margin-top:10px;">Túlóra kézi módosítása:</label>
+    <input id="manualOvertime" type="number" step="0.01">
+
+    <button onclick="saveManualOvertime()">Túlóra mentése</button>
+  </div>
+
+</div>
+<!-- TÚLÓRA -->
+<div id="page-overtime" class="page">
+
+  <div class="card">
+    <div class="card-title">🔧 App óraállás</div>
+
+    <div id="lockStateBox" class="entry" style="text-align:center;font-weight:600;">
+      🔒 Zárolva – feloldáshoz koppintson
+    </div>
+
+    <input id="appBalance" type="number" step="0.01" readonly>
+    <button onclick="toggleLock()">🔓 Feloldás / Zárolás</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏢 Céges óraállás</div>
+    <input id="companyBalance" type="number" step="0.01" oninput="updateDifference()">
+    <div class="entry">Különbség: <span id="balanceDiff">0.00</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📄 Napi túlórák</div>
+    <div id="overtimeList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Összesített túlóra</div>
+    <div class="metric-value" id="totalOvertime">0.00</div>
+  </div>
+
+</div>
+
+</div> <!-- app vége -->
+
+<div class="bottom-nav">
+  <div id="nav-page-home" class="nav-item active" onclick="showPage('page-home')">🏠 Ma</div>
+  <div id="nav-page-calendar" class="nav-item" onclick="showPage('page-calendar')">📅 Naptár</div>
+  <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime')">⏱ Túlóra</div>
+</div>
+<script>
+let db = { days:{}, appBalance:0, companyBalance:0, locked:true };
+
+function loadDB(){
+  let r = localStorage.getItem("munkapro_ios");
+  if(r) db = JSON.parse(r);
+  updateUI();
+}
+function saveDB(){
+  localStorage.setItem("munkapro_ios", JSON.stringify(db));
+  updateUI();
+}
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("nav-"+id).classList.add("active");
+  updateUI();
+}
+
+function startWork(){
+  let d = today(); ensureDay(d);
+  db.days[d].start = now();
+  saveDB();
+}
+function endWork(){
+  let d = today(); ensureDay(d);
+  db.days[d].end = now();
+  saveDB();
+}
+
+function startBreak(){
+  let d = today(); ensureDay(d);
+  db.days[d].breaks.push({start:now(),end:null});
+  saveDB();
+}
+function endBreak(){
+  let d = today(); ensureDay(d);
+  let br = db.days[d].breaks;
+  if(br.length && br[br.length-1].end===null) br[br.length-1].end = now();
+  saveDB();
+}
+
+function selectDay(d){
+  ensureDay(d);
+  let day = db.days[d];
+  manualStart.value = day.start || "";
+  manualEnd.value   = day.end   || "";
+  manualOvertime.value = day.manualOvertime ?? "";
+  renderBreaks(d);
+  renderDaySummary(d);
+}
+
+function saveManual(){
+  let d = dayPicker.value;
+  ensureDay(d);
+  db.days[d].start = manualStart.value;
+  db.days[d].end   = manualEnd.value;
+  saveDB();
+  selectDay(d);
+}
+
+function addBreak(){
+  let d = dayPicker.value;
+  ensureDay(d);
+  db.days[d].breaks.push({start:"",end:""});
+  saveDB();
+  renderBreaks(d);
+}
+
+function renderBreaks(d){
+  breakList.innerHTML = "";
+  db.days[d].breaks.forEach((b,i)=>{
+    breakList.innerHTML += `
+      <div class="entry">
+        <input type="time" step="1" value="${b.start||""}" onchange="editBreak('${d}',${i},'start',this.value)">
+        <input type="time" step="1" value="${b.end||""}"   onchange="editBreak('${d}',${i},'end',this.value)">
+      </div>`;
+  });
+}
+
+function editBreak(d,i,f,v){
+  db.days[d].breaks[i][f] = v;
+  saveDB();
+  renderDaySummary(d);
+}
+
+function saveManualOvertime(){
+  let d = dayPicker.value;
+  ensureDay(d);
+  let v = manualOvertime.value;
+  if(v==="") delete db.days[d].manualOvertime;
+  else db.days[d].manualOvertime = parseFloat(v);
+  saveDB();
+  renderDaySummary(d);
+}
+
+function toggleLock(){
+  db.locked = !db.locked;
+  if(!db.locked){
+    db.appBalance = parseFloat(appBalance.value) || 0;
+  }
+  saveDB();
+}
+
+function updateDifference(){
+  db.companyBalance = parseFloat(companyBalance.value) || 0;
+  saveDB();
+}
+
+function ensureDay(d){
+  if(!db.days[d]) db.days[d] = {start:"",end:"",breaks:[],manualOvertime:undefined};
+}
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function now(){ return new Date().toTimeString().slice(0,8); }
+
+function diffTime(a,b){
+  if(!a||!b) return 0;
+  return (new Date("2000-01-01 "+b) - new Date("2000-01-01 "+a))/1000;
+}
+
+function format(s){
+  let h = Math.floor(s/3600),
+      m = Math.floor((s%3600)/60),
+      x = s%60;
+  return `${pad(h)}:${pad(m)}:${pad(x)}`;
+}
+
+function pad(n){ return n.toString().padStart(2,"0"); }
+
+function renderDaySummary(d){
+  let day = db.days[d]; if(!day) return;
+
+  let presence = diffTime(day.start,day.end);
+  let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+  let net = presence - breakSec; if(net<0) net=0;
+
+  let overtime = day.manualOvertime !== undefined ? day.manualOvertime : (net/3600)-8;
+
+  sum_presence.innerText = format(presence);
+  sum_breaks.innerText   = format(breakSec);
+  sum_overtime.innerText = overtime.toFixed(2);
+
+  updateUI();
+}
+
+function updateUI(){
+  /* LOCK */
+  lockStateBox.innerHTML = db.locked
+    ? "🔒 Zárolva – feloldáshoz koppintson"
+    : "🔓 Feloldva – szerkeszthető";
+  lockStateBox.style.background = db.locked ? "#7f1d1d" : "#14532d";
+  appBalance.readOnly = db.locked;
+
+  appBalance.value    = db.appBalance;
+  companyBalance.value= db.companyBalance;
+
+  let diff = db.companyBalance - db.appBalance;
+  balanceDiff.innerText = diff.toFixed(2);
+  balanceDiff.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
+
+  /* TÚLÓRA LISTA */
+  overtimeList.innerHTML = "";
+  let total = 0;
+
+  Object.keys(db.days).forEach(d=>{
+    let day = db.days[d];
+    let presence = diffTime(day.start,day.end);
+    let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+    let net = presence - breakSec;
+    let overtime = day.manualOvertime !== undefined ? day.manualOvertime : (net/3600)-8;
+    total += overtime;
+
+    overtimeList.innerHTML += `
+      <div class="entry"><b>${d}</b> – ${overtime.toFixed(2)} óra</div>
+    `;
+  });
+
+  totalOvertime.innerText = total.toFixed(2);
+
+  /* MAI NAP */
+  let d = today();
+  if (db.days[d]) {
+    let day = db.days[d];
+
+    let presence = diffTime(day.start, day.end);
+    let breakSec = 0;
+    day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
+
+    let net = presence - breakSec;
+    if (net < 0) net = 0;
+
+    let overtime = day.manualOvertime !== undefined
+      ? day.manualOvertime
+      : (net / 3600) - 8;
+
+    today_presence.innerText = format(presence);
+    today_breaks.innerText   = format(breakSec);
+    today_overtime.innerHTML = formatOvertime(overtime);
+
+    renderTimeline(day);
+  }
+}
+
+function renderTimeline(day) {
+  let events = [];
+
+  if (day.start)
+    events.push({ time: day.start, label: "🟢 Munkakezdés" });
+
+  day.breaks.forEach(b => {
+    if (b.start) events.push({ time: b.start, label: "☕ Szünet kezdete" });
+    if (b.end)   events.push({ time: b.end,   label: "🔙 Szünet vége" });
+  });
+
+  if (day.end)
+    events.push({ time: day.end, label: "⛔ Munka vége" });
+
+  // IDŐREND
+  events.sort((a,b)=>a.time.localeCompare(b.time));
+
+  timeline.innerHTML = "";
+  events.forEach(e => {
+    timeline.innerHTML += `
+      <div class="entry">
+        ${e.label}: <span>${e.time}</span>
+      </div>
+    `;
+  });
+}
+
+function formatOvertime(overtimeHours) {
+  let minutes = Math.round(overtimeHours * 60);
+  let sign = minutes >= 0 ? "+" : "-";
+  let color = minutes >= 0 ? "var(--success)" : "var(--danger)";
+
+  return `
+    <span style="color:${color}; font-weight:700;">
+      ${sign}${Math.abs(overtimeHours).toFixed(2)}
+    </span>
+    <span style="color:${color};">
+      (${sign}${Math.abs(minutes)} perc)
+    </span>
+  `;
+}
+
+loadDB();
+</script>
+
+</body>
+</html>
