@@ -16,8 +16,13 @@
   --danger:#ef4444;
   --success:#22c55e;
   --shadow:0 8px 22px rgba(0,0,0,0.35);
+
+  --ios-white:#ffffff;
+  --ios-black:#000000;
+  --ios-gray:#6b7280;
 }
 
+/* ALAP */
 body {
   margin:0;
   background:var(--bg);
@@ -50,19 +55,27 @@ body {
   margin-bottom:12px;
 }
 
-.entry {
-  background:#1f2126;
-  padding:12px;
-  border-radius:14px;
-  margin:6px 0;
-  border:1px solid #2a2d33;
+/* RESET gomb */
+.reset-top-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--card);
+    color: var(--fg);
+    border: 1px solid #1f2126;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    z-index: 999;
 }
 
-.entry span { color:var(--accent); font-weight:600; }
-
-.metric { color:var(--muted); font-size:14px; margin-top:10px; }
-.metric-value { font-size:20px; font-weight:600; margin-bottom:6px; }
-
+/* GOMBOK */
 button {
   width:100%;
   padding:14px;
@@ -82,6 +95,7 @@ button:active { transform:scale(0.97); opacity:0.9; }
 .btn-break { background:#d97706; }
 .btn-end { background:#dc2626; }
 
+/* INPUTOK */
 input {
   width:100%;
   padding:12px;
@@ -91,26 +105,6 @@ input {
   color:#fff;
   margin:6px 0;
   font-size:15px;
-}
-
-/* RESET gomb */
-.reset-top-btn {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    background: var(--card);
-    color: var(--fg);
-    border: 1px solid #1f2126;
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    z-index: 999;
 }
 
 /* iOS NAV – ikon + felirat */
@@ -155,42 +149,108 @@ input {
   background:#2563eb33;
 }
 
-/* Naptár oldal – napi összesítés */
-#day-summary h3 { margin-bottom: 8px; }
-
-#day-summary .row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 0;
-  font-size: 16px;
+/* NAPTÁR – iOS FEHÉR STÍLUS */
+.calendar-card {
+  background:#ffffff;
+  color:#000;
+  border:none;
 }
 
-#day-summary .break-total {
-  color: var(--accent);
-  margin-left: 8px;
-}
-
-/* Naptár rács */
 #calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  margin-top: 12px;
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:12px;
 }
 
 .calendar-day {
-  padding: 6px 4px;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  background: #1b1d22;
-  color: var(--fg);
+  padding:10px 0;
+  text-align:center;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:15px;
+  background:#ffffff;
+  color:#000;
+  font-weight:500;
+  transition:0.15s;
 }
 
-.calendar-day.today { border: 1px solid var(--accent); }
-.calendar-day.selected { background: var(--accent); color: #000; }
+/* Mai nap – piros pötty */
+.calendar-day.today {
+  position:relative;
+}
 
+.calendar-day.today::after {
+  content:"";
+  width:6px;
+  height:6px;
+  background:#ef4444;
+  border-radius:50%;
+  position:absolute;
+  bottom:4px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* Kiválasztott nap – iOS kék */
+.calendar-day.selected {
+  background:#2563eb;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 0 0 2px #1e40af inset;
+}
+
+/* NAPI ÖSSZESÍTÉS – iOS FEHÉR */
+.day-summary-card {
+  background:#ffffff;
+  color:#000;
+  border:none;
+}
+
+.day-summary-card .row {
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-size:16px;
+}
+
+.day-summary-card .row span:first-child {
+  color:#6b7280;
+}
+
+.day-summary-card .row span:last-child {
+  font-weight:600;
+  color:#111827;
+}
+
+.overtime-positive { color:#16a34a; font-weight:700; }
+.overtime-negative { color:#dc2626; font-weight:700; }
+
+/* HÓNAPVÁLTÓ */
+#month-header {
+  background:#ffffff;
+  color:#000;
+  border:none;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-radius:22px;
+  margin-bottom:18px;
+}
+
+#month-header button {
+  background:none;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#000;
+}
+
+#month-title {
+  font-size:18px;
+  font-weight:600;
+}
 </style>
 </head>
 
@@ -233,8 +293,18 @@ input {
 <!-- NAPTÁR OLDAL -->
 <div id="page-calendar" class="page">
 
-  <div id="day-summary" class="card"></div>
-  <div id="calendar" class="card"></div>
+  <!-- HÓNAPVÁLTÓ -->
+  <div id="month-header" class="card">
+      <button onclick="prevMonth()">⬅️</button>
+      <span id="month-title"></span>
+      <button onclick="nextMonth()">➡️</button>
+  </div>
+
+  <!-- NAPI ÖSSZESÍTÉS FELÜL -->
+  <div id="day-summary" class="card day-summary-card"></div>
+
+  <!-- NAPTÁR RÁCS ALUL -->
+  <div id="calendar" class="card calendar-card"></div>
 
 </div>
 
@@ -270,7 +340,7 @@ input {
 
 </div> <!-- app vége -->
 
-<!-- iOS NAV – ikon + felirat -->
+<!-- iOS NAV -->
 <div class="bottom-nav">
 
   <div id="nav-page-home" class="nav-item active"
@@ -292,13 +362,15 @@ input {
   </div>
 
 </div>
-
 <script>
 /* -------------------------
    ADATBÁZIS
 -------------------------- */
 let db = { days:{}, appBalance:0, companyBalance:0, locked:true };
 
+/* -------------------------
+   LOAD / SAVE
+-------------------------- */
 function loadDB(){
   let r = localStorage.getItem("munkapro_ios");
   if(r) db = JSON.parse(r);
@@ -323,7 +395,7 @@ function showPage(id){
 }
 
 /* -------------------------
-   MUNKA KEZDÉSE
+   MUNKA KEZDÉSE / VÉGE
 -------------------------- */
 function startWork() {
     let d = today();
@@ -338,9 +410,6 @@ function startWork() {
     saveDB();
 }
 
-/* -------------------------
-   MUNKA VÉGE
--------------------------- */
 function endWork() {
     let d = today();
     let day = ensure(d);
@@ -415,7 +484,7 @@ function endBreak(){
 }
 
 /* -------------------------
-   LOCK
+   LOCK / KÜLÖNBSÉG
 -------------------------- */
 function toggleLock(){
   db.locked = !db.locked;
@@ -466,7 +535,7 @@ function format(s){
 function pad(n){ return n.toString().padStart(2,"0"); }
 
 /* -------------------------
-   MAI NAP ÖSSZEGZÉS
+   FŐ UI FRISSÍTÉS
 -------------------------- */
 function updateUI(){
   /* LOCK */
@@ -576,12 +645,13 @@ function formatOvertime(overtimeHours) {
 }
 
 /* -------------------------
-   ÚJ NAPTÁR LOGIKA
+   NAPTÁR LOGIKA
 -------------------------- */
-
 let currentCalendarDay = today();
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth(); // 0–11
 
-    function formatDate(dateKey) {
+function formatDate(dateKey) {
     const d = new Date(dateKey);
     const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
     const dayName = days[d.getDay()];
@@ -623,6 +693,16 @@ function renderDaySummary(dateKey) {
         ? `(${br.minutes}p ${br.seconds}mp)`
         : "";
 
+    let presence = diffTime(day.start, day.end);
+    let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+    let net = presence - breakSec;
+    if (net < 0) net = 0;
+    let overtime = day.manualOvertime !== undefined
+        ? day.manualOvertime
+        : (net / 3600) - 8;
+
+    const overtimeClass = overtime >= 0 ? "overtime-positive" : "overtime-negative";
+
     daySummary.innerHTML = `
         <h3>${formatDate(dateKey)}</h3>
 
@@ -645,6 +725,11 @@ function renderDaySummary(dateKey) {
             <span>Munka vége:</span>
             <span>${day.end ?? "—"}</span>
         </div>
+
+        <div class="row">
+            <span>Túlóra:</span>
+            <span class="${overtimeClass}">${overtime.toFixed(2)} óra</span>
+        </div>
     `;
 }
 
@@ -652,14 +737,14 @@ function renderCalendar() {
     const cal = document.getElementById("calendar");
     cal.innerHTML = "";
 
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-
-    const first = new Date(year, month, 1);
-    const last = new Date(year, month + 1, 0);
+    const first = new Date(currentYear, currentMonth, 1);
+    const last = new Date(currentYear, currentMonth + 1, 0);
     const daysInMonth = last.getDate();
     const startWeekday = first.getDay();
+
+    const monthNames = ["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December"];
+    document.getElementById("month-title").innerText =
+        `${monthNames[currentMonth]} ${currentYear}`;
 
     for (let i = 0; i < startWeekday; i++) {
         const empty = document.createElement("div");
@@ -667,7 +752,7 @@ function renderCalendar() {
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
         const el = document.createElement("div");
         el.className = "calendar-day";
         el.textContent = d;
@@ -690,14 +775,31 @@ function highlightCalendarSelection() {
     days.forEach(d => {
         d.classList.remove("selected");
         const dayNum = d.textContent;
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const dateKey = `${year}-${String(month + 1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
+        const dateKey = `${currentYear}-${String(currentMonth + 1).padStart(2,"0")}-${String(dayNum).padStart(2,"0")}`;
         if (dateKey === currentCalendarDay) {
             d.classList.add("selected");
         }
     });
+}
+
+function prevMonth() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    renderCalendar();
+    renderDaySummary(currentCalendarDay);
+}
+
+function nextMonth() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendar();
+    renderDaySummary(currentCalendarDay);
 }
 
 setInterval(() => {
@@ -711,11 +813,14 @@ setInterval(() => {
 
 function initCalendarPage() {
     currentCalendarDay = today();
+    currentYear = new Date().getFullYear();
+    currentMonth = new Date().getMonth();
     renderCalendar();
     renderDaySummary(currentCalendarDay);
 }
 
+/* -------------------------
+   INIT
+-------------------------- */
 loadDB();
 </script>
-</body>
-</html>
