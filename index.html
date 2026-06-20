@@ -285,7 +285,6 @@ input {
 
 <div class="bottom-nav">
   <div id="nav-page-home" class="nav-item active" onclick="showPage('page-home')">🏠 Ma</div>
-<button onclick="showCalendarPage()">Naptár</button>
   <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime')">⏱ Túlóra</div>
 </div>
 <script>
@@ -354,11 +353,10 @@ function endWork() {
 /* -------------------------
    RESET NAP
 -------------------------- */
-
 function resetToday() {
     let d = today();
     delete db.days[d];
-    saveDB();   // ← EZ A HELYES
+    saveDB();
 
     today_presence.innerText = "00:00:00";
     today_breaks.innerText = "00:00:00";
@@ -367,8 +365,6 @@ function resetToday() {
 
     location.reload();
 }
-
-
 
 /* -------------------------
    SZÜNET KEZDÉSE / VÉGE
@@ -402,66 +398,6 @@ function endBreak(){
   } else {
       alert("Nincs nyitott szünet.");
   }
-}
-
-/* -------------------------
-   NAP KIVÁLASZTÁSA
--------------------------- */
-function selectDay(d){
-  ensure(d);
-  let day = db.days[d];
-  manualStart.value = day.start || "";
-  manualEnd.value   = day.end   || "";
-  manualOvertime.value = day.manualOvertime ?? "";
-  renderBreaks(d);
-  renderDaySummary(d);
-}
-
-/* -------------------------
-   KÉZI MENTÉSEK
--------------------------- */
-function saveManual(){
-  let d = dayPicker.value;
-  ensure(d);
-  db.days[d].start = manualStart.value;
-  db.days[d].end   = manualEnd.value;
-  saveDB();
-  selectDay(d);
-}
-
-function addBreak(){
-  let d = dayPicker.value;
-  ensure(d);
-  db.days[d].breaks.push({start:"",end:""});
-  saveDB();
-  renderBreaks(d);
-}
-
-function renderBreaks(d){
-  breakList.innerHTML = "";
-  db.days[d].breaks.forEach((b,i)=>{
-    breakList.innerHTML += `
-      <div class="entry">
-        <input type="time" step="1" value="${b.start||""}" onchange="editBreak('${d}',${i},'start',this.value)">
-        <input type="time" step="1" value="${b.end||""}"   onchange="editBreak('${d}',${i},'end',this.value)">
-      </div>`;
-  });
-}
-
-function editBreak(d,i,f,v){
-  db.days[d].breaks[i][f] = v;
-  saveDB();
-  renderDaySummary(d);
-}
-
-function saveManualOvertime(){
-  let d = dayPicker.value;
-  ensure(d);
-  let v = manualOvertime.value;
-  if(v==="") delete db.days[d].manualOvertime;
-  else db.days[d].manualOvertime = parseFloat(v);
-  saveDB();
-  renderDaySummary(d);
 }
 
 /* -------------------------
@@ -516,26 +452,7 @@ function format(s){
 function pad(n){ return n.toString().padStart(2,"0"); }
 
 /* -------------------------
-   NAPI ÖSSZEGZÉS
--------------------------- */
-function renderDaySummary(d){
-  let day = db.days[d]; if(!day) return;
-
-  let presence = diffTime(day.start,day.end);
-  let breakSec = 0; day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
-  let net = presence - breakSec; if(net<0) net=0;
-
-  let overtime = day.manualOvertime !== undefined ? day.manualOvertime : (net/3600)-8;
-
-  sum_presence.innerText = format(presence);
-  sum_breaks.innerText   = format(breakSec);
-  sum_overtime.innerText = overtime.toFixed(2);
-
-  updateUI();
-}
-
-/* -------------------------
-   UI FRISSÍTÉS
+   MAI NAP ÖSSZEGZÉS
 -------------------------- */
 function updateUI(){
   /* LOCK */
@@ -644,10 +561,12 @@ function formatOvertime(overtimeHours) {
   `;
 }
 
-// Aktuálisan kiválasztott naptári nap (YYYY-MM-DD)
+/* -------------------------
+   ÚJ NAPTÁR LOGIKA
+-------------------------- */
+
 let currentCalendarDay = today();
 
-// Segéd: dátum formázása (YYYY-MM-DD -> 2026.06.20. (szombat))
 function formatDate(dateKey) {
     const d = new Date(dateKey);
     const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
@@ -658,14 +577,13 @@ function formatDate(dateKey) {
     return `${y}.${m}.${day}. (${dayName})`;
 }
 
-// Szünet összesen perc + mp
 function calcBreakTotal(breaks) {
     if (!breaks || breaks.length === 0) return { minutes: 0, seconds: 0 };
 
     let totalSec = 0;
     for (let b of breaks) {
         if (b.start && b.end) {
-            totalSec += toSeconds(b.end) - toSeconds(b.start);
+            totalSec += diffTime(b.start, b.end);
         }
     }
 
@@ -674,18 +592,6 @@ function calcBreakTotal(breaks) {
     return { minutes, seconds };
 }
 
-// Túlóra szöveg (100-as + perc zárójelben) – igazítsd a saját logikádhoz
-function calcOvertimeText(day) {
-    // Itt a saját túlóra számításod jön – most csak példa:
-    // pl. day.overtime100 és day.overtimeMinutes
-    if (!day || day.overtime100 == null || day.overtimeMinutes == null) return "—";
-    const sign = day.overtime100 >= 0 ? "+" : "-";
-    const abs100 = Math.abs(day.overtime100);
-    const absMin = Math.abs(day.overtimeMinutes);
-    return `${sign}${abs100} (${absMin}p)`;
-}
-
-// Napi összesítés kártya kirajzolása
 function renderDaySummary(dateKey) {
     const daySummary = document.getElementById("day-summary");
     const day = db.days[dateKey];
@@ -702,8 +608,6 @@ function renderDaySummary(dateKey) {
     const breakText = (br.minutes || br.seconds)
         ? `(${br.minutes}p ${br.seconds}mp)`
         : "";
-
-    const overtimeText = calcOvertimeText(day);
 
     daySummary.innerHTML = `
         <h3>${formatDate(dateKey)}</h3>
@@ -727,29 +631,22 @@ function renderDaySummary(dateKey) {
             <span>Munka vége:</span>
             <span>${day.end ?? "—"}</span>
         </div>
-
-        <div class="row">
-            <span>Túlóra:</span>
-            <span>${overtimeText}</span>
-        </div>
     `;
 }
 
-// Naptár kirajzolása (aktuális hónap)
 function renderCalendar() {
     const cal = document.getElementById("calendar");
     cal.innerHTML = "";
 
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth(); // 0–11
+    const month = now.getMonth();
 
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
     const daysInMonth = last.getDate();
-    const startWeekday = first.getDay(); // 0 vasárnap
+    const startWeekday = first.getDay();
 
-    // Üres cellák a hónap elejére
     for (let i = 0; i < startWeekday; i++) {
         const empty = document.createElement("div");
         cal.appendChild(empty);
@@ -761,12 +658,8 @@ function renderCalendar() {
         el.className = "calendar-day";
         el.textContent = d;
 
-        if (dateKey === today()) {
-            el.classList.add("today");
-        }
-        if (dateKey === currentCalendarDay) {
-            el.classList.add("selected");
-        }
+        if (dateKey === today()) el.classList.add("today");
+        if (dateKey === currentCalendarDay) el.classList.add("selected");
 
         el.onclick = () => {
             currentCalendarDay = dateKey;
@@ -778,7 +671,6 @@ function renderCalendar() {
     }
 }
 
-// Kijelölt nap kiemelése a naptárban
 function highlightCalendarSelection() {
     const days = document.querySelectorAll("#calendar .calendar-day");
     days.forEach(d => {
@@ -794,7 +686,6 @@ function highlightCalendarSelection() {
     });
 }
 
-// Éjféli automatikus napváltás (percenként ellenőriz)
 setInterval(() => {
     const nowKey = today();
     if (currentCalendarDay !== nowKey) {
@@ -804,7 +695,6 @@ setInterval(() => {
     }
 }, 60000);
 
-// Naptár oldal inicializálása – hívd meg, amikor a Naptár oldalra lépsz
 function initCalendarPage() {
     currentCalendarDay = today();
     renderCalendar();
