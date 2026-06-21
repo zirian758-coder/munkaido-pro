@@ -6,10 +6,6 @@
 <title>Munkaidő PRO</title>
 
 <style>
-
-/* -------------------------
-   ALAPSZÍNEK
--------------------------- */
 :root {
   --bg:#0c0d10;
   --fg:#ffffff;
@@ -20,9 +16,6 @@
   --success:#22c55e;
 }
 
-/* -------------------------
-   ALAP LAYOUT
--------------------------- */
 body {
   margin:0;
   background:var(--bg);
@@ -39,9 +32,6 @@ body {
 .page { display:none; }
 .page.active { display:block; }
 
-/* -------------------------
-   KÁRTYÁK
--------------------------- */
 .card {
   background:var(--card);
   padding:18px;
@@ -56,9 +46,6 @@ body {
   margin-bottom:12px;
 }
 
-/* -------------------------
-   GOMBOK
--------------------------- */
 button {
   width:100%;
   padding:14px;
@@ -75,9 +62,6 @@ button {
 .btn-break { background:#d97706; }
 .btn-end { background:#dc2626; }
 
-/* -------------------------
-   INPUTOK
--------------------------- */
 input {
   width:100%;
   padding:12px;
@@ -89,9 +73,6 @@ input {
   font-size:15px;
 }
 
-/* -------------------------
-   RESET GOMB
--------------------------- */
 .reset-top-btn {
     position: absolute;
     top: 12px;
@@ -110,9 +91,6 @@ input {
     z-index: 999;
 }
 
-/* -------------------------
-   NAV
--------------------------- */
 .bottom-nav {
   position:fixed;
   bottom:0;
@@ -147,9 +125,6 @@ input {
 .nav-icon { font-size:20px; }
 .nav-label { font-size:11px; }
 
-/* -------------------------
-   NAPTÁR – EREDETI SÖTÉT TÉMA
--------------------------- */
 #month-header {
   background:#16181d;
   color:#fff;
@@ -206,16 +181,6 @@ input {
   border:1px solid #1f2126;
 }
 
-.month-total-card {
-    background: var(--card);
-    border: 1px solid #1f2126;
-    padding: 16px;
-    border-radius: 18px;
-    margin-top: 18px;
-    font-size: 17px;
-    font-weight: 600;
-}
-
 #calendar {
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -254,13 +219,20 @@ input {
   box-shadow:0 0 0 2px #1e40af inset;
 }
 
+.month-total-card {
+    background: var(--card);
+    border: 1px solid #1f2126;
+    padding: 16px;
+    border-radius: 18px;
+    margin-top: 18px;
+    font-size: 17px;
+    font-weight: 600;
+}
 </style>
-
 </head>
 <body>
 
 <div class="app">
-
 <!-- MA OLDAL -->
 <div id="page-home" class="page active">
 
@@ -307,6 +279,7 @@ input {
 
   <div id="calendar" class="card calendar-card"></div>
 
+  <!-- Havi összesítés -->
   <div id="month-total" class="card month-total-card"></div>
 
 </div>
@@ -403,7 +376,6 @@ function showPage(id){
 
     updateUI();
 }
-
 /* -------------------------
    SEGÉDFÜGGVÉNYEK
 -------------------------- */
@@ -563,7 +535,7 @@ function renderTimeline(day){
 }
 
 /* -------------------------
-   TÚLÓRA FORMÁZÁS – EREDETI, JÓ VERZIÓ
+   TÚLÓRA FORMÁZÁS
 -------------------------- */
 function formatOvertime(overtimeHours){
     let minutes = Math.round(overtimeHours * 60);
@@ -656,6 +628,33 @@ let currentCalendarDay = today();
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 
+function calculateMonthTotal(year, month) {
+    let total = 0;
+
+    Object.keys(db.days).forEach(dateKey => {
+        const d = new Date(dateKey);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+
+            const day = db.days[dateKey];
+
+            let presence = diffTime(day.start, day.end);
+            let breakSec = 0;
+            day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
+
+            let net = presence - breakSec;
+            if (net < 0) net = 0;
+
+            let overtime = day.manualOvertime !== undefined
+                ? day.manualOvertime
+                : (net / 3600) - 8;
+
+            total += overtime;
+        }
+    });
+
+    return total;
+}
+
 function renderCalendar(){
     const cal = document.getElementById("calendar");
     cal.innerHTML = "";
@@ -694,41 +693,25 @@ function renderCalendar(){
         };
 
         cal.appendChild(el);
-        for(let d=1; d<=daysInMonth; d++){
-    const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const el = document.createElement("div");
-    el.className = "calendar-day";
-    el.textContent = d;
+    }
 
-    if(dateKey === today()) el.classList.add("today");
-    if(dateKey === currentCalendarDay) el.classList.add("selected");
+    /* -------------------------
+       HÓNAP ÖSSZESÍTÉSE
+    -------------------------- */
+    const monthTotal = calculateMonthTotal(currentYear, currentMonth);
+    const minutes = Math.round(monthTotal * 60);
+    const sign = minutes >= 0 ? "+" : "-";
+    const color = minutes >= 0 ? "var(--success)" : "var(--danger)";
 
-    el.onclick = ()=>{
-        currentCalendarDay = dateKey;
-        renderDaySummary(dateKey);
-        highlightCalendarSelection();
-    };
-
-    cal.appendChild(el);
-}
-
-/* -------------------------
-   HÓNAP ÖSSZESÍTÉSE
--------------------------- */
-const monthTotal = calculateMonthTotal(currentYear, currentMonth);
-const minutes = Math.round(monthTotal * 60);
-const sign = minutes >= 0 ? "+" : "-";
-const color = minutes >= 0 ? "var(--success)" : "var(--danger)";
-
-document.getElementById("month-total").innerHTML = `
-    Teljes hónap: 
-    <span style="color:${color}; font-weight:700;">
-        ${sign}${Math.abs(monthTotal).toFixed(2)} óra
-    </span>
-    <span style="color:${color};">
-        (${sign}${Math.abs(minutes)} perc)
-    </span>
-`;
+    document.getElementById("month-total").innerHTML = `
+        Teljes hónap: 
+        <span style="color:${color}; font-weight:700;">
+            ${sign}${Math.abs(monthTotal).toFixed(2)} óra
+        </span>
+        <span style="color:${color};">
+            (${sign}${Math.abs(minutes)} perc)
+        </span>
+    `;
 }
 
 function highlightCalendarSelection(){
@@ -761,33 +744,6 @@ function nextMonth(){
     }
     renderCalendar();
     renderDaySummary(currentCalendarDay);
-}
-
-function calculateMonthTotal(year, month) {
-    let total = 0;
-
-    Object.keys(db.days).forEach(dateKey => {
-        const d = new Date(dateKey);
-        if (d.getFullYear() === year && d.getMonth() === month) {
-
-            const day = db.days[dateKey];
-
-            let presence = diffTime(day.start, day.end);
-            let breakSec = 0;
-            day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
-
-            let net = presence - breakSec;
-            if (net < 0) net = 0;
-
-            let overtime = day.manualOvertime !== undefined
-                ? day.manualOvertime
-                : (net / 3600) - 8;
-
-            total += overtime;
-        }
-    });
-
-    return total;
 }
 
 function renderDaySummary(dateKey){
@@ -855,7 +811,6 @@ function renderDaySummary(dateKey){
     `;
 }
 
-
 function initCalendarPage(){
     currentCalendarDay = today();
     currentYear = new Date().getFullYear();
@@ -868,7 +823,6 @@ function initCalendarPage(){
    INIT
 -------------------------- */
 loadDB();
-
 </script>
 
 </body>
