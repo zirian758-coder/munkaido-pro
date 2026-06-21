@@ -56,6 +56,7 @@ button {
   color:#fff;
   font-weight:600;
   background:#2563eb;
+  cursor:pointer;
 }
 
 .btn-start { background:#16a34a; }
@@ -228,6 +229,64 @@ input {
     font-size: 17px;
     font-weight: 600;
 }
+
+/* Túlóra – nagy állapotjelző sáv + mentés */
+.overtime-card-header {
+  padding:10px 12px;
+  border-radius:14px;
+  margin-bottom:10px;
+  font-size:14px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.overtime-header-locked {
+  background:#451a1a;
+  color:#fecaca;
+}
+
+.overtime-header-unlocked {
+  background:#14532d;
+  color:#bbf7d0;
+}
+
+.overtime-save-row {
+  display:flex;
+  justify-content:flex-end;
+  margin-top:6px;
+}
+
+.overtime-save-btn {
+  width:auto;
+  padding:8px 14px;
+  border-radius:999px;
+  font-size:14px;
+  background:#16a34a;
+}
+
+.overtime-save-btn[disabled] {
+  opacity:0.4;
+  cursor:default;
+}
+
+.metric {
+  font-size:14px;
+  color:#9ca3af;
+  margin-top:4px;
+}
+
+.metric-value {
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+.entry {
+  font-size:14px;
+  margin:4px 0;
+}
 </style>
 </head>
 <body>
@@ -261,7 +320,7 @@ input {
       <div class="metric-value" id="today_breaks">00:00:00</div>
 
       <div class="metric">Túlóra</div>
-      <div class="metric-value" id="today_overtime"></div>
+      <div class="metric-value" id="today_overtime">—</div>
     </div>
 
 </div>
@@ -282,34 +341,59 @@ input {
   <!-- Havi összesítés -->
   <div id="month-total" class="card month-total-card"></div>
 
+  <!-- Napi túlórák listája (hónapra) -->
+  <div class="card">
+    <div class="card-title">📄 Napi túlórák (aktuális hónap)</div>
+    <div id="monthOvertimeList"></div>
+  </div>
+
 </div>
 
 <!-- TÚLÓRA OLDAL -->
 <div id="page-overtime" class="page">
 
-  <div class="card">
-    <div class="card-title">🔧 App óraállás</div>
-    <div id="lockStateBox" class="entry" style="text-align:center;font-weight:600;">
-      🔒 Zárolva – feloldáshoz koppintson
-    </div>
-    <input id="appBalance" type="number" step="0.01" readonly>
-    <button onclick="toggleLock()">🔓 Feloldás / Zárolás</button>
-  </div>
-
+  <!-- Céges óraállás – mindig szerkeszthető -->
   <div class="card">
     <div class="card-title">🏢 Céges óraállás</div>
-    <input id="companyBalance" type="number" step="0.01" oninput="updateDifference()">
-    <div class="entry">Különbség: <span id="balanceDiff">0.00</span></div>
+    <input id="companyBalance" type="number" step="0.01" oninput="onCompanyBalanceChange()">
+    <div class="entry">Ez az érték mindig szabadon módosítható.</div>
   </div>
 
+  <!-- App túlóra állás – nagy állapotjelző sáv + pipa -->
   <div class="card">
-    <div class="card-title">📄 Napi túlórák</div>
-    <div id="overtimeList"></div>
+    <div class="card-title">🔧 App túlóra állás</div>
+
+    <div id="appLockHeader" class="overtime-card-header overtime-header-locked"
+         onclick="toggleLock()">
+      <span id="appLockIcon">🔒</span>
+      <span id="appLockText">Zárolva – feloldáshoz koppintson</span>
+    </div>
+
+    <input id="appBalance" type="number" step="0.01" readonly oninput="onAppBalanceInput()">
+
+    <div class="overtime-save-row">
+      <button id="appSaveBtn" class="overtime-save-btn" onclick="saveAppBase()" disabled>
+        ✔ Mentés
+      </button>
+    </div>
+
+    <div class="entry" style="margin-top:6px;font-size:13px;color:#9ca3af;">
+      Feloldva módban megadhatod az induló app óraállást. Zárolva módban az app
+      automatikusan hozzáadja/levonja a napi túlórákat.
+    </div>
   </div>
 
+  <!-- Mai automatikus módosítás -->
   <div class="card">
-    <div class="card-title">📊 Összesített túlóra</div>
-    <div class="metric-value" id="totalOvertime">0.00</div>
+    <div class="card-title">📆 Mai módosítás az app óraállásra</div>
+    <div class="metric">Mai túlóra</div>
+    <div class="metric-value" id="today_overtime_for_app">—</div>
+  </div>
+
+  <!-- Különbség -->
+  <div class="card">
+    <div class="card-title">📊 Különbség (céges – app)</div>
+    <div class="metric-value" id="balanceDiff">0.00</div>
   </div>
 
 </div>
@@ -345,7 +429,7 @@ input {
 -------------------------- */
 let db = { 
     days:{}, 
-    appBalance:0, 
+    appBase:0, 
     companyBalance:0, 
     locked:true 
 };
@@ -355,7 +439,14 @@ let db = {
 -------------------------- */
 function loadDB(){
     let r = localStorage.getItem("munkapro_ios");
-    if(r) db = JSON.parse(r);
+    if(r){
+        db = JSON.parse(r);
+        // régi struktúra migráció (ha appBalance volt)
+        if(db.appBalance !== undefined && db.appBase === undefined){
+            db.appBase = db.appBalance;
+            delete db.appBalance;
+        }
+    }
     updateUI();
 }
 
@@ -492,18 +583,56 @@ function resetToday(){
 }
 
 /* -------------------------
-   LOCK / KÜLÖNBSÉG
+   LOCK / APP ÓRAÁLLÁS / KÜLÖNBSÉG
 -------------------------- */
+function syncLockHeader(){
+    const header = document.getElementById("appLockHeader");
+    const icon   = document.getElementById("appLockIcon");
+    const text   = document.getElementById("appLockText");
+    const input  = document.getElementById("appBalance");
+
+    if(db.locked){
+        header.classList.remove("overtime-header-unlocked");
+        header.classList.add("overtime-header-locked");
+        icon.textContent = "🔒";
+        text.textContent = "Zárolva – feloldáshoz koppintson";
+        input.readOnly = true;
+    } else {
+        header.classList.remove("overtime-header-locked");
+        header.classList.add("overtime-header-unlocked");
+        icon.textContent = "🔓";
+        text.textContent = "Feloldva – szerkeszthető";
+        input.readOnly = false;
+    }
+}
+
 function toggleLock(){
     db.locked = !db.locked;
-    if(!db.locked){
-        db.appBalance = parseFloat(appBalance.value) || 0;
-    }
+    document.getElementById("appSaveBtn").disabled = true;
     saveDB();
 }
 
-function updateDifference(){
+function onCompanyBalanceChange(){
     db.companyBalance = parseFloat(companyBalance.value) || 0;
+    saveDB();
+}
+
+function onAppBalanceInput(){
+    const val = parseFloat(appBalance.value);
+    const btn = document.getElementById("appSaveBtn");
+    if(isNaN(val)){
+        btn.disabled = true;
+        return;
+    }
+    btn.disabled = (val === (db.appBase || 0));
+}
+
+function saveAppBase(){
+    const val = parseFloat(appBalance.value);
+    if(isNaN(val)) return;
+    db.appBase = val;
+    db.locked = true;
+    document.getElementById("appSaveBtn").disabled = true;
     saveDB();
 }
 
@@ -553,71 +682,98 @@ function formatOvertime(overtimeHours){
 }
 
 /* -------------------------
+   NAPI TÚLÓRA SZÁMÍTÁS (30p szünet szabállyal)
+-------------------------- */
+function computeDayOvertime(day){
+    if(!day.start || !day.end) return 0;
+
+    let presence = diffTime(day.start, day.end);
+    let breakSec = 0; 
+    day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+
+    // 30 perc „ingyen”, fölötte levonás
+    let effectiveBreak = Math.max(0, breakSec - 1800);
+
+    let net = presence - effectiveBreak;
+    if(net < 0) net = 0;
+
+    let overtime = day.manualOvertime !== undefined
+        ? day.manualOvertime
+        : (net/3600) - 8;
+
+    return overtime;
+}
+
+/* -------------------------
    FŐ UI FRISSÍTÉS
 -------------------------- */
 function updateUI(){
-    /* LOCK */
-    lockStateBox.innerHTML = db.locked
-        ? "🔒 Zárolva – feloldáshoz koppintson"
-        : "🔓 Feloldva – szerkeszthető";
-
-    lockStateBox.style.background = db.locked ? "#7f1d1d" : "#14532d";
-    appBalance.readOnly = db.locked;
-
-    appBalance.value = db.appBalance;
+    // Céges óraállás
     companyBalance.value = db.companyBalance;
 
-    let diff = db.companyBalance - db.appBalance;
-    balanceDiff.innerText = diff.toFixed(2);
-    balanceDiff.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
-
-    /* TÚLÓRA LISTA */
-    overtimeList.innerHTML = "";
-    let total = 0;
-
+    // Összes napi túlóra
+    let totalOvertime = 0;
     Object.keys(db.days).forEach(d=>{
-        let day = db.days[d];
-        let presence = diffTime(day.start, day.end);
-        let breakSec = 0; 
-        day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
-
-        let net = presence - breakSec;
-        if(net < 0) net = 0;
-
-        let overtime = day.manualOvertime !== undefined
-            ? day.manualOvertime
-            : (net/3600) - 8;
-
-        total += overtime;
-
-        overtimeList.innerHTML += `
-            <div class="entry"><b>${d}</b> – ${overtime.toFixed(2)} óra</div>
-        `;
+        totalOvertime += computeDayOvertime(db.days[d]);
     });
 
-    totalOvertime.innerText = total.toFixed(2);
+    // App óraállás – computed érték
+    let appBase = db.appBase || 0;
+    let computedApp = appBase + totalOvertime;
 
-    /* MAI NAP */
-    let d = today();
-    if(db.days[d]){
-        let day = db.days[d];
+    // App input tartalma: zárolva = computed, feloldva = base
+    if(db.locked){
+        appBalance.value = computedApp.toFixed(2);
+    } else {
+        appBalance.value = appBase.toFixed(2);
+    }
+    syncLockHeader();
+
+    // Mai módosítás (csak a mai nap túlórája)
+    let todayKey = today();
+    let todayOver = 0;
+    if(db.days[todayKey]){
+        todayOver = computeDayOvertime(db.days[todayKey]);
+    }
+    document.getElementById("today_overtime_for_app").innerHTML =
+        formatOvertime(todayOver);
+
+    // Különbség (céges – app)
+    let diff = db.companyBalance - computedApp;
+    const diffEl = document.getElementById("balanceDiff");
+    diffEl.innerText = diff.toFixed(2);
+    diffEl.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
+
+    // Napi túlórák – MA oldal
+    if(db.days[todayKey]){
+        let day = db.days[todayKey];
 
         let presence = diffTime(day.start, day.end);
         let breakSec = 0;
         day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
 
-        let net = presence - breakSec;
+        let effectiveBreak = Math.max(0, breakSec - 1800);
+        let net = presence - effectiveBreak;
         if(net < 0) net = 0;
 
-        let overtime = day.manualOvertime !== undefined
-            ? day.manualOvertime
-            : (net/3600) - 8;
+        let overtime = computeDayOvertime(day);
 
         today_presence.innerText = format(presence);
         today_breaks.innerText   = format(breakSec);
         today_overtime.innerHTML = day.end ? formatOvertime(overtime) : "—";
 
         renderTimeline(day);
+    } else {
+        today_presence.innerText = "00:00:00";
+        today_breaks.innerText   = "00:00:00";
+        today_overtime.innerText = "—";
+        timeline.innerHTML = "";
+    }
+
+    // Ha épp a naptár oldalon vagyunk, frissítsük a havi listát is
+    if(document.getElementById("page-calendar").classList.contains("active")){
+        renderCalendar();
+        renderDaySummary(currentCalendarDay);
     }
 }
 
@@ -634,21 +790,8 @@ function calculateMonthTotal(year, month) {
     Object.keys(db.days).forEach(dateKey => {
         const d = new Date(dateKey);
         if (d.getFullYear() === year && d.getMonth() === month) {
-
             const day = db.days[dateKey];
-
-            let presence = diffTime(day.start, day.end);
-            let breakSec = 0;
-            day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
-
-            let net = presence - breakSec;
-            if (net < 0) net = 0;
-
-            let overtime = day.manualOvertime !== undefined
-                ? day.manualOvertime
-                : (net / 3600) - 8;
-
-            total += overtime;
+            total += computeDayOvertime(day);
         }
     });
 
@@ -657,7 +800,9 @@ function calculateMonthTotal(year, month) {
 
 function renderCalendar(){
     const cal = document.getElementById("calendar");
+    const monthOvertimeList = document.getElementById("monthOvertimeList");
     cal.innerHTML = "";
+    monthOvertimeList.innerHTML = "";
 
     const first = new Date(currentYear, currentMonth, 1);
     const last = new Date(currentYear, currentMonth+1, 0);
@@ -693,11 +838,19 @@ function renderCalendar(){
         };
 
         cal.appendChild(el);
+
+        // Napi túlóra lista a hónap kártyában
+        if(db.days[dateKey]){
+            const ot = computeDayOvertime(db.days[dateKey]);
+            monthOvertimeList.innerHTML += `
+                <div class="entry">
+                    <b>${dateKey}</b> – ${ot.toFixed(2)} óra
+                </div>
+            `;
+        }
     }
 
-    /* -------------------------
-       HÓNAP ÖSSZESÍTÉSE
-    -------------------------- */
+    /* HÓNAP ÖSSZESÍTÉSE */
     const monthTotal = calculateMonthTotal(currentYear, currentMonth);
     const minutes = Math.round(monthTotal * 60);
     const sign = minutes >= 0 ? "+" : "-";
@@ -776,14 +929,11 @@ function renderDaySummary(dateKey){
     let presence = diffTime(day.start, day.end);
     let breakSec = 0; 
     day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
-
-    let net = presence - breakSec;
+    let effectiveBreak = Math.max(0, breakSec - 1800);
+    let net = presence - effectiveBreak;
     if(net < 0) net = 0;
 
-    let overtime = day.manualOvertime !== undefined
-        ? day.manualOvertime
-        : (net/3600) - 8;
-
+    let overtime = computeDayOvertime(day);
     const overtimeClass = overtime >= 0 ? "overtime-positive" : "overtime-negative";
 
     daySummary.innerHTML = `
