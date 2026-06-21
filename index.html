@@ -6,7 +6,7 @@
 <title>Munkaidő PRO</title>
 
 <style>
-  
+
 /* -------------------------
    ALAPSZÍNEK
 -------------------------- */
@@ -729,6 +729,21 @@ function renderDaySummary(dateKey){
         return;
     }
 
+    /* SZÜNETEK LISTÁJA */
+    let breaksHTML = "";
+
+    if (day.breaks.length === 0) {
+        breaksHTML = "—";
+    } else {
+        day.breaks.forEach(b => {
+            breaksHTML += `
+                <div>
+                    ${b.start ?? "—"} → ${b.end ?? "—"}
+                </div>
+            `;
+        });
+    }
+
     let presence = diffTime(day.start, day.end);
     let breakSec = 0; 
     day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
@@ -752,7 +767,7 @@ function renderDaySummary(dateKey){
 
         <div class="row">
             <span>Szünetek:</span>
-            <span>${day.breaks.length} db</span>
+            <span>${breaksHTML}</span>
         </div>
 
         <div class="row">
@@ -766,6 +781,7 @@ function renderDaySummary(dateKey){
         </div>
     `;
 }
+
 
 function initCalendarPage(){
     currentCalendarDay = today();
