@@ -897,6 +897,26 @@ function renderDaySummary(dateKey){
 /* -------------------------
    INIT
 -------------------------- */
+/* -------------------------
+   NAPI ADATOK TÖRLÉSE
+-------------------------- */
+function resetToday(){
+    let d = today();
+
+    db.days[d] = {
+        start: null,
+        end: null,
+        breaks: [],
+        presence: 0,
+        workTime: 0,
+        breakTime: 0,
+        overtime: 0,
+        workSegments: []
+    };
+
+    saveDB();
+}
+
 loadDB();
 </script>
 
