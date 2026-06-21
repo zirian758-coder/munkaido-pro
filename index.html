@@ -206,6 +206,16 @@ input {
   border:1px solid #1f2126;
 }
 
+.month-total-card {
+    background: var(--card);
+    border: 1px solid #1f2126;
+    padding: 16px;
+    border-radius: 18px;
+    margin-top: 18px;
+    font-size: 17px;
+    font-weight: 600;
+}
+
 #calendar {
   display:grid;
   grid-template-columns:repeat(7,1fr);
@@ -296,6 +306,8 @@ input {
   <div id="day-summary" class="card day-summary-card"></div>
 
   <div id="calendar" class="card calendar-card"></div>
+
+  <div id="month-total" class="card month-total-card"></div>
 
 </div>
 
@@ -682,7 +694,41 @@ function renderCalendar(){
         };
 
         cal.appendChild(el);
-    }
+        for(let d=1; d<=daysInMonth; d++){
+    const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const el = document.createElement("div");
+    el.className = "calendar-day";
+    el.textContent = d;
+
+    if(dateKey === today()) el.classList.add("today");
+    if(dateKey === currentCalendarDay) el.classList.add("selected");
+
+    el.onclick = ()=>{
+        currentCalendarDay = dateKey;
+        renderDaySummary(dateKey);
+        highlightCalendarSelection();
+    };
+
+    cal.appendChild(el);
+}
+
+/* -------------------------
+   HÓNAP ÖSSZESÍTÉSE
+-------------------------- */
+const monthTotal = calculateMonthTotal(currentYear, currentMonth);
+const minutes = Math.round(monthTotal * 60);
+const sign = minutes >= 0 ? "+" : "-";
+const color = minutes >= 0 ? "var(--success)" : "var(--danger)";
+
+document.getElementById("month-total").innerHTML = `
+    Teljes hónap: 
+    <span style="color:${color}; font-weight:700;">
+        ${sign}${Math.abs(monthTotal).toFixed(2)} óra
+    </span>
+    <span style="color:${color};">
+        (${sign}${Math.abs(minutes)} perc)
+    </span>
+`;
 }
 
 function highlightCalendarSelection(){
@@ -715,6 +761,33 @@ function nextMonth(){
     }
     renderCalendar();
     renderDaySummary(currentCalendarDay);
+}
+
+function calculateMonthTotal(year, month) {
+    let total = 0;
+
+    Object.keys(db.days).forEach(dateKey => {
+        const d = new Date(dateKey);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+
+            const day = db.days[dateKey];
+
+            let presence = diffTime(day.start, day.end);
+            let breakSec = 0;
+            day.breaks.forEach(b => breakSec += diffTime(b.start, b.end));
+
+            let net = presence - breakSec;
+            if (net < 0) net = 0;
+
+            let overtime = day.manualOvertime !== undefined
+                ? day.manualOvertime
+                : (net / 3600) - 8;
+
+            total += overtime;
+        }
+    });
+
+    return total;
 }
 
 function renderDaySummary(dateKey){
