@@ -378,22 +378,27 @@ input {
     </div>
 
     <div class="entry" style="margin-top:6px;font-size:13px;color:#9ca3af;">
-      Feloldva módban megadhatod az induló app óraállást. Zárolva módban az app
-      automatikusan hozzáadja/levonja a napi túlórákat.
+      Feloldva módban megadhatod az induló app óraállást.  
+      Zárolva módban az app automatikusan hozzáadja / levonja a napi túlórákat.
     </div>
   </div>
 
-  <!-- Mai automatikus módosítás -->
-  <div class="card">
-    <div class="card-title">📆 Mai módosítás az app óraállásra</div>
-    <div class="metric">Mai túlóra</div>
-    <div class="metric-value" id="today_overtime_for_app">—</div>
+  <!-- Rögzített induló app óraállás (új kártya) -->
+  <div class="card" id="appBaseCard" style="display:none;">
+    <div class="card-title">📌 Rögzített induló app óraállás</div>
+    <div class="metric-value" id="appBaseValue">0.00</div>
   </div>
 
   <!-- Különbség -->
   <div class="card">
     <div class="card-title">📊 Különbség (céges – app)</div>
     <div class="metric-value" id="balanceDiff">0.00</div>
+  </div>
+
+  <!-- Mai automatikus módosítás -->
+  <div class="card">
+    <div class="card-title">📆 Mai módosítás az app óraállásra</div>
+    <div class="metric-value" id="today_overtime_for_app">—</div>
   </div>
 
 </div>
@@ -441,7 +446,6 @@ function loadDB(){
     let r = localStorage.getItem("munkapro_ios");
     if(r){
         db = JSON.parse(r);
-        // régi struktúra migráció (ha appBalance volt)
         if(db.appBalance !== undefined && db.appBase === undefined){
             db.appBase = db.appBalance;
             delete db.appBalance;
@@ -485,6 +489,10 @@ function format(s){
         m = Math.floor((s%3600)/60),
         x = s%60;
     return `${pad(h)}:${pad(m)}:${pad(x)}`;
+}
+
+function sanitizeDecimalInput(el){
+    el.value = el.value.replace(/[^0-9.]/g, "");
 }
 
 function ensure(d){
@@ -664,25 +672,7 @@ function renderTimeline(day){
 }
 
 /* -------------------------
-   TÚLÓRA FORMÁZÁS
--------------------------- */
-function formatOvertime(overtimeHours){
-    let minutes = Math.round(overtimeHours * 60);
-    let sign = minutes >= 0 ? "+" : "-";
-    let color = minutes >= 0 ? "var(--success)" : "var(--danger)";
-
-    return `
-        <span style="color:${color}; font-weight:700;">
-            ${sign}${Math.abs(overtimeHours).toFixed(2)}
-        </span>
-        <span style="color:${color};">
-            (${sign}${Math.abs(minutes)} perc)
-        </span>
-    `;
-}
-
-/* -------------------------
-   NAPI TÚLÓRA SZÁMÍTÁS (30p szünet szabállyal)
+   TÚLÓRA SZÁMÍTÁS (30p szabály)
 -------------------------- */
 function computeDayOvertime(day){
     if(!day.start || !day.end) return 0;
@@ -691,16 +681,13 @@ function computeDayOvertime(day){
     let breakSec = 0; 
     day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
 
-    // 30 perc „ingyen”, fölötte levonás
+    // 30 perc ingyen
     let effectiveBreak = Math.max(0, breakSec - 1800);
 
     let net = presence - effectiveBreak;
     if(net < 0) net = 0;
 
-    let overtime = day.manualOvertime !== undefined
-        ? day.manualOvertime
-        : (net/3600) - 8;
-
+    let overtime = (net/3600) - 8;
     return overtime;
 }
 
@@ -717,11 +704,11 @@ function updateUI(){
         totalOvertime += computeDayOvertime(db.days[d]);
     });
 
-    // App óraállás – computed érték
+    // App óraállás = appBase + összes túlóra
     let appBase = db.appBase || 0;
     let computedApp = appBase + totalOvertime;
 
-    // App input tartalma: zárolva = computed, feloldva = base
+    // App input tartalma
     if(db.locked){
         appBalance.value = computedApp.toFixed(2);
     } else {
@@ -729,22 +716,32 @@ function updateUI(){
     }
     syncLockHeader();
 
-    // Mai módosítás (csak a mai nap túlórája)
+    // Rögzített induló érték kártya
+    const baseCard = document.getElementById("appBaseCard");
+    const baseVal  = document.getElementById("appBaseValue");
+    if(appBase !== 0){
+        baseCard.style.display = "block";
+        baseVal.textContent = appBase.toFixed(2);
+    } else {
+        baseCard.style.display = "none";
+    }
+
+    // Mai módosítás
     let todayKey = today();
     let todayOver = 0;
     if(db.days[todayKey]){
         todayOver = computeDayOvertime(db.days[todayKey]);
     }
-    document.getElementById("today_overtime_for_app").innerHTML =
-        formatOvertime(todayOver);
+    document.getElementById("today_overtime_for_app").textContent =
+        todayOver.toFixed(2);
 
-    // Különbség (céges – app)
+    // Különbség
     let diff = db.companyBalance - computedApp;
     const diffEl = document.getElementById("balanceDiff");
     diffEl.innerText = diff.toFixed(2);
     diffEl.style.color = diff>=0 ? "var(--success)" : "var(--danger)";
 
-    // Napi túlórák – MA oldal
+    // MA oldal
     if(db.days[todayKey]){
         let day = db.days[todayKey];
 
@@ -752,15 +749,9 @@ function updateUI(){
         let breakSec = 0;
         day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
 
-        let effectiveBreak = Math.max(0, breakSec - 1800);
-        let net = presence - effectiveBreak;
-        if(net < 0) net = 0;
-
-        let overtime = computeDayOvertime(day);
-
         today_presence.innerText = format(presence);
         today_breaks.innerText   = format(breakSec);
-        today_overtime.innerHTML = day.end ? formatOvertime(overtime) : "—";
+        today_overtime.innerText = computeDayOvertime(day).toFixed(2);
 
         renderTimeline(day);
     } else {
@@ -770,7 +761,7 @@ function updateUI(){
         timeline.innerHTML = "";
     }
 
-    // Ha épp a naptár oldalon vagyunk, frissítsük a havi listát is
+    // Ha naptár oldalon vagyunk → frissítsük
     if(document.getElementById("page-calendar").classList.contains("active")){
         renderCalendar();
         renderDaySummary(currentCalendarDay);
@@ -790,8 +781,7 @@ function calculateMonthTotal(year, month) {
     Object.keys(db.days).forEach(dateKey => {
         const d = new Date(dateKey);
         if (d.getFullYear() === year && d.getMonth() === month) {
-            const day = db.days[dateKey];
-            total += computeDayOvertime(day);
+            total += computeDayOvertime(db.days[dateKey]);
         }
     });
 
@@ -839,7 +829,7 @@ function renderCalendar(){
 
         cal.appendChild(el);
 
-        // Napi túlóra lista a hónap kártyában
+        // Napi túlóra lista
         if(db.days[dateKey]){
             const ot = computeDayOvertime(db.days[dateKey]);
             monthOvertimeList.innerHTML += `
