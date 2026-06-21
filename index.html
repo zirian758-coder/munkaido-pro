@@ -355,7 +355,7 @@ input {
   <!-- Céges óraállás – mindig szerkeszthető -->
   <div class="card">
     <div class="card-title">🏢 Céges óraállás</div>
-    <input id="companyBalance" type="text" oninput="onCompanyBalanceChange()">
+    <input id="companyBalance" type="text" onblur="onCompanyBalanceChange(this)">
     <div class="entry">Ez az érték mindig szabadon módosítható.</div>
   </div>
 
@@ -620,9 +620,9 @@ function toggleLock(){
     saveDB();
 }
 
-function onCompanyBalanceChange(){
-    sanitizeDecimalInput(companyBalance);
-    db.companyBalance = parseFloat(companyBalance.value) || 0;
+function onCompanyBalanceChange(el){
+    sanitizeDecimalInput(el);
+    db.companyBalance = parseFloat(el.value) || 0;
     saveDB();
 }
 
