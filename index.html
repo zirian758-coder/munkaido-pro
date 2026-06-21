@@ -3,10 +3,246 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Munkaidő PRO – iOS Edition</title>
+<title>Munkaidő PRO</title>
 
 <style>
-/* IDE JÖN A TELJES CSS – A KÖVETKEZŐ ÜZENETBEN KÜLDÖM */
+/* -------------------------
+   ALAPSZÍNEK
+-------------------------- */
+:root {
+  --bg:#0c0d10;
+  --fg:#ffffff;
+  --card:#16181d;
+  --muted:#8a8f99;
+  --accent:#3b82f6;
+  --danger:#ef4444;
+  --success:#22c55e;
+}
+
+/* -------------------------
+   ALAP LAYOUT
+-------------------------- */
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:-apple-system,system-ui;
+}
+
+.app {
+  padding:16px 14px 100px;
+  max-width:900px;
+  margin:auto;
+}
+
+.page { display:none; }
+.page.active { display:block; }
+
+/* -------------------------
+   KÁRTYÁK
+-------------------------- */
+.card {
+  background:var(--card);
+  padding:18px;
+  border-radius:22px;
+  margin:18px 0;
+  border:1px solid #1f2126;
+}
+
+.card-title {
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+/* -------------------------
+   GOMBOK
+-------------------------- */
+button {
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:none;
+  margin:8px 0;
+  font-size:16px;
+  color:#fff;
+  font-weight:600;
+  background:#2563eb;
+}
+
+.btn-start { background:#16a34a; }
+.btn-break { background:#d97706; }
+.btn-end { background:#dc2626; }
+
+/* -------------------------
+   INPUTOK
+-------------------------- */
+input {
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid #2a2d33;
+  background:#0f1115;
+  color:#fff;
+  margin:6px 0;
+  font-size:15px;
+}
+
+/* -------------------------
+   RESET GOMB
+-------------------------- */
+.reset-top-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--card);
+    color: var(--fg);
+    border: 1px solid #1f2126;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 999;
+}
+
+/* -------------------------
+   NAV
+-------------------------- */
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111318ee;
+  backdrop-filter:blur(14px);
+  display:flex;
+  justify-content:space-between;
+  padding:10px 12px;
+  border-top:1px solid #2a2d33;
+}
+
+.nav-item {
+  flex:1;
+  text-align:center;
+  color:var(--muted);
+  padding:6px 0;
+  border-radius:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+}
+
+.nav-item.active {
+  color:#fff;
+  background:#2563eb33;
+}
+
+.nav-icon { font-size:20px; }
+.nav-label { font-size:11px; }
+
+/* -------------------------
+   NAPTÁR – EREDETI SÖTÉT TÉMA
+-------------------------- */
+#month-header {
+  background:#16181d;
+  color:#fff;
+  border:1px solid #1f2126;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 18px;
+  border-radius:22px;
+  margin-bottom:18px;
+}
+
+#month-header button {
+  background:none;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  color:#fff;
+}
+
+#month-title {
+  font-size:18px;
+  font-weight:600;
+}
+
+.day-summary-card {
+  background:#16181d;
+  color:#fff;
+  border:1px solid #1f2126;
+}
+
+.day-summary-card .row {
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-size:16px;
+}
+
+.day-summary-card .row span:first-child {
+  color:#8a8f99;
+}
+
+.day-summary-card .row span:last-child {
+  font-weight:600;
+  color:#ffffff;
+}
+
+.overtime-positive { color:#22c55e; font-weight:700; }
+.overtime-negative { color:#ef4444; font-weight:700; }
+
+.calendar-card {
+  background:#16181d;
+  color:#fff;
+  border:1px solid #1f2126;
+}
+
+#calendar {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  margin-top:12px;
+}
+
+.calendar-day {
+  padding:10px 0;
+  text-align:center;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:15px;
+  background:#1b1d22;
+  color:#fff;
+  font-weight:500;
+  position:relative;
+}
+
+.calendar-day.today::after {
+  content:"";
+  width:6px;
+  height:6px;
+  background:#ef4444;
+  border-radius:50%;
+  position:absolute;
+  bottom:4px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+.calendar-day.selected {
+  background:#2563eb;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 0 0 2px #1e40af inset;
+}
+
 </style>
 
 </head>
@@ -50,17 +286,14 @@
 <!-- NAPTÁR OLDAL -->
 <div id="page-calendar" class="page">
 
-  <!-- HÓNAPVÁLTÓ -->
   <div id="month-header" class="card">
       <button onclick="prevMonth()">⬅️</button>
       <span id="month-title"></span>
       <button onclick="nextMonth()">➡️</button>
   </div>
 
-  <!-- NAPI ÖSSZESÍTÉS -->
   <div id="day-summary" class="card day-summary-card"></div>
 
-  <!-- NAPTÁR RÁCS -->
   <div id="calendar" class="card calendar-card"></div>
 
 </div>
@@ -97,7 +330,7 @@
 
 </div> <!-- app vége -->
 
-<!-- iOS NAV -->
+<!-- NAV -->
 <div class="bottom-nav">
 
   <div id="nav-page-home" class="nav-item active"
@@ -121,289 +354,6 @@
 </div>
 
 <script>
-/* IDE JÖN A TELJES SCRIPT – A 3. ÜZENETBEN KÜLDÖM */
-</script>
-
-</body>
-</html>
-/* -------------------------
-   ALAPSZÍNEK
--------------------------- */
-:root {
-  --bg:#0c0d10;
-  --fg:#ffffff;
-  --card:#16181d;
-  --muted:#8a8f99;
-  --accent:#3b82f6;
-  --danger:#ef4444;
-  --success:#22c55e;
-  --shadow:0 8px 22px rgba(0,0,0,0.35);
-}
-
-/* -------------------------
-   ALAP LAYOUT
--------------------------- */
-body {
-  margin:0;
-  background:var(--bg);
-  color:var(--fg);
-  font-family:-apple-system,system-ui;
-}
-
-.app {
-  padding:16px 14px 100px;
-  max-width:900px;
-  margin:auto;
-}
-
-.page { display:none; position:relative; }
-.page.active { display:block; }
-
-/* -------------------------
-   KÁRTYÁK
--------------------------- */
-.card {
-  background:var(--card);
-  padding:18px;
-  border-radius:22px;
-  margin:18px 0;
-  box-shadow:var(--shadow);
-  border:1px solid #1f2126;
-}
-
-.card-title {
-  font-size:18px;
-  font-weight:600;
-  margin-bottom:12px;
-}
-
-/* -------------------------
-   GOMBOK
--------------------------- */
-button {
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:none;
-  margin:8px 0;
-  font-size:16px;
-  color:#fff;
-  font-weight:600;
-  background:#2563eb;
-  box-shadow:0 4px 12px rgba(0,0,0,0.25);
-}
-
-button:active { transform:scale(0.97); opacity:0.9; }
-
-.btn-start { background:#16a34a; }
-.btn-break { background:#d97706; }
-.btn-end { background:#dc2626; }
-
-/* -------------------------
-   INPUTOK
--------------------------- */
-input {
-  width:100%;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid #2a2d33;
-  background:#0f1115;
-  color:#fff;
-  margin:6px 0;
-  font-size:15px;
-}
-
-/* -------------------------
-   RESET GOMB
--------------------------- */
-.reset-top-btn {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    background: var(--card);
-    color: var(--fg);
-    border: 1px solid #1f2126;
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    box-shadow: var(--shadow);
-    z-index: 999;
-}
-
-/* -------------------------
-   iOS NAV
--------------------------- */
-.bottom-nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#111318ee;
-  backdrop-filter:blur(14px);
-  display:flex;
-  justify-content:space-between;
-  padding:10px 12px;
-  border-top:1px solid #2a2d33;
-}
-
-.nav-item {
-  flex:1;
-  text-align:center;
-  color:var(--muted);
-  padding:6px 0;
-  border-radius:12px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-}
-
-.nav-icon {
-  font-size:20px;
-  line-height:20px;
-}
-
-.nav-label {
-  font-size:11px;
-  margin-top:2px;
-}
-
-.nav-item.active {
-  color:#fff;
-  background:#2563eb33;
-}
-
-/* -------------------------
-   EGYEDI iOS DARK NAPTÁR
--------------------------- */
-
-/* HÓNAPVÁLTÓ */
-#month-header {
-  background:#1a1c20;
-  color:#fff;
-  border:1px solid #2a2d33;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:14px 18px;
-  border-radius:18px;
-  margin-bottom:18px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.35);
-}
-
-#month-header button {
-  background:none;
-  border:none;
-  font-size:22px;
-  cursor:pointer;
-  color:#fff;
-  padding:4px 10px;
-  border-radius:10px;
-  transition:0.15s;
-}
-
-#month-header button:hover {
-  background:#2a2d33;
-}
-
-#month-title {
-  font-size:18px;
-  font-weight:600;
-  letter-spacing:0.3px;
-}
-
-/* NAPI ÖSSZESÍTÉS */
-.day-summary-card {
-  background:#16181d;
-  color:#fff;
-  border:1px solid #2a2d33;
-  border-radius:18px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.35);
-}
-
-.day-summary-card .row {
-  display:flex;
-  justify-content:space-between;
-  padding:8px 0;
-  font-size:16px;
-}
-
-.day-summary-card .row span:first-child {
-  color:#8a8f99;
-}
-
-.day-summary-card .row span:last-child {
-  font-weight:600;
-  color:#ffffff;
-}
-
-/* TÚLÓRA SZÍNEK */
-.overtime-positive { color:#22c55e; font-weight:700; }
-.overtime-negative { color:#ef4444; font-weight:700; }
-
-/* NAPTÁR KÁRTYA */
-.calendar-card {
-  background:#16181d;
-  color:#fff;
-  border:1px solid #2a2d33;
-  border-radius:18px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.35);
-}
-
-/* NAPTÁR RÁCS */
-#calendar {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:8px;
-  margin-top:12px;
-}
-
-/* NAP CELLÁK */
-.calendar-day {
-  padding:12px 0;
-  text-align:center;
-  border-radius:12px;
-  cursor:pointer;
-  font-size:15px;
-  background:#1f2126;
-  color:#fff;
-  font-weight:500;
-  transition:0.15s;
-  position:relative;
-  box-shadow:0 4px 12px rgba(0,0,0,0.25);
-}
-
-.calendar-day:hover {
-  background:#2a2d33;
-}
-
-/* MAI NAP – PIROS PÖTTY */
-.calendar-day.today::after {
-  content:"";
-  width:6px;
-  height:6px;
-  background:#ef4444;
-  border-radius:50%;
-  position:absolute;
-  bottom:6px;
-  left:50%;
-  transform:translateX(-50%);
-}
-
-/* KIVÁLASZTOTT NAP – KÉK */
-.calendar-day.selected {
-  background:#2563eb;
-  color:#fff;
-  font-weight:700;
-  box-shadow:0 0 0 3px #1e40af inset;
-  transform:scale(1.05);
-}
 /* -------------------------
    ADATBÁZIS
 -------------------------- */
@@ -600,7 +550,7 @@ function renderTimeline(day){
 }
 
 /* -------------------------
-   TÚLÓRA FORMÁZÁS
+   TÚLÓRA FORMÁZÁS – EREDETI, JÓ VERZIÓ
 -------------------------- */
 function formatOvertime(overtimeHours){
     let minutes = Math.round(overtimeHours * 60);
@@ -693,91 +643,6 @@ let currentCalendarDay = today();
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 
-function formatDate(dateKey){
-    const d = new Date(dateKey);
-    const days = ["vasárnap","hétfő","kedd","szerda","csütörtök","péntek","szombat"];
-    const dayName = days[d.getDay()];
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const day = String(d.getDate()).padStart(2,"0");
-    return `${y}.${m}.${day}. (${dayName})`;
-}
-
-function calcBreakTotal(breaks){
-    if(!breaks || breaks.length===0) return {minutes:0, seconds:0};
-
-    let totalSec = 0;
-    for(let b of breaks){
-        if(b.start && b.end){
-            totalSec += diffTime(b.start, b.end);
-        }
-    }
-
-    return {
-        minutes: Math.floor(totalSec/60),
-        seconds: totalSec % 60
-    };
-}
-
-function renderDaySummary(dateKey){
-    const daySummary = document.getElementById("day-summary");
-    const day = db.days[dateKey];
-
-    if(!day){
-        daySummary.innerHTML = `
-            <h3>${formatDate(dateKey)}</h3>
-            <p>Nincs adat ehhez a naphoz.</p>
-        `;
-        return;
-    }
-
-    const br = calcBreakTotal(day.breaks);
-    const breakText = (br.minutes || br.seconds)
-        ? `(${br.minutes}p ${br.seconds}mp)`
-        : "";
-
-    let presence = diffTime(day.start, day.end);
-    let breakSec = 0; 
-    day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
-
-    let net = presence - breakSec;
-    if(net < 0) net = 0;
-
-    let overtime = day.manualOvertime !== undefined
-        ? day.manualOvertime
-        : (net/3600) - 8;
-
-    const overtimeClass = overtime >= 0 ? "overtime-positive" : "overtime-negative";
-
-    daySummary.innerHTML = `
-        <h3>${formatDate(dateKey)}</h3>
-
-        <div class="row">
-            <span>Munka kezdete:</span>
-            <span>${day.start ?? "—"}</span>
-        </div>
-
-        <div class="row">
-            <span>Szünet:</span>
-            <span>
-                ${day.breaks[0]?.start ?? "—"} –
-                ${day.breaks[0]?.end ?? "—"}
-                <strong class="break-total">${breakText}</strong>
-            </span>
-        </div>
-
-        <div class="row">
-            <span>Munka vége:</span>
-            <span>${day.end ?? "—"}</span>
-        </div>
-
-        <div class="row">
-            <span>Túlóra:</span>
-            <span class="${overtimeClass}">${overtime.toFixed(2)} óra</span>
-        </div>
-    `;
-}
-
 function renderCalendar(){
     const cal = document.getElementById("calendar");
     cal.innerHTML = "";
@@ -851,14 +716,55 @@ function nextMonth(){
     renderDaySummary(currentCalendarDay);
 }
 
-setInterval(()=>{
-    const nowKey = today();
-    if(currentCalendarDay !== nowKey){
-        currentCalendarDay = nowKey;
-        renderDaySummary(nowKey);
-        highlightCalendarSelection();
+function renderDaySummary(dateKey){
+    const daySummary = document.getElementById("day-summary");
+    const day = db.days[dateKey];
+
+    if(!day){
+        daySummary.innerHTML = `
+            <h3>${dateKey}</h3>
+            <p>Nincs adat ehhez a naphoz.</p>
+        `;
+        return;
     }
-}, 60000);
+
+    let presence = diffTime(day.start, day.end);
+    let breakSec = 0; 
+    day.breaks.forEach(b=>breakSec += diffTime(b.start,b.end));
+
+    let net = presence - breakSec;
+    if(net < 0) net = 0;
+
+    let overtime = day.manualOvertime !== undefined
+        ? day.manualOvertime
+        : (net/3600) - 8;
+
+    const overtimeClass = overtime >= 0 ? "overtime-positive" : "overtime-negative";
+
+    daySummary.innerHTML = `
+        <h3>${dateKey}</h3>
+
+        <div class="row">
+            <span>Munka kezdete:</span>
+            <span>${day.start ?? "—"}</span>
+        </div>
+
+        <div class="row">
+            <span>Szünetek:</span>
+            <span>${day.breaks.length} db</span>
+        </div>
+
+        <div class="row">
+            <span>Munka vége:</span>
+            <span>${day.end ?? "—"}</span>
+        </div>
+
+        <div class="row">
+            <span>Túlóra:</span>
+            <span class="${overtimeClass}">${overtime.toFixed(2)} óra</span>
+        </div>
+    `;
+}
 
 function initCalendarPage(){
     currentCalendarDay = today();
@@ -872,3 +778,8 @@ function initCalendarPage(){
    INIT
 -------------------------- */
 loadDB();
+
+</script>
+
+</body>
+</html>
