@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Munkaidő PRO v2.2 FINAL + Overtime PRO</title>
+<title>Munkaidő PRO v2.3 FINAL – iOS Emojik</title>
 
 <style>
 :root {
@@ -126,65 +126,12 @@ input {
 .nav-icon { font-size:20px; }
 .nav-label { font-size:11px; }
 
-.settings-list {
-  background:var(--card);
-  border-radius:18px;
-  overflow:hidden;
-  border:1px solid #1f2126;
-}
-
-.settings-item {
-  display:flex;
-  align-items:center;
-  padding:16px;
-  border-bottom:1px solid #1f2126;
-  cursor:pointer;
-}
-
-.settings-item:last-child {
-  border-bottom:none;
-}
-
-.settings-flag {
-  font-size:24px;
-  margin-right:14px;
-}
-
-.settings-arrow {
-  margin-left:auto;
-  font-size:18px;
-  color:#8a8f99;
-}
-
 .row {
   display:flex;
   justify-content:space-between;
   align-items:center;
   padding:6px 0;
   font-size:15px;
-}
-
-#calendar {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-}
-
-.calendar-day {
-  padding:8px 0;
-  text-align:center;
-  border-radius:10px;
-  background:#111318;
-  cursor:pointer;
-  font-size:13px;
-}
-
-.calendar-day.today {
-  border:1px solid var(--accent);
-}
-
-.calendar-day.selected {
-  background:#2563eb55;
 }
 
 .entry {
@@ -194,16 +141,6 @@ input {
 
 .overtime-positive { color:var(--success); }
 .overtime-negative { color:var(--danger); }
-
-#page-overtime input {
-  width:120px;
-  text-align:right;
-}
-
-#ot_daily_list .entry {
-  padding:4px 0;
-  font-size:14px;
-}
 
 .ot-pos { color:var(--success); font-weight:600; }
 .ot-neg { color:var(--danger); font-weight:600; }
@@ -226,44 +163,29 @@ input {
   <div class="reset-top-btn" onclick="resetToday()">⟳</div>
 
   <div class="card">
-    <div class="card-title">Munka gombok</div>
-    <button class="btn-start" onclick="startWork()">▶ Munkakezdés</button>
-    <button class="btn-break" onclick="startBreak()">☕ Szünet kezdete</button>
+    <div class="card-title">🟢 Munka gombok</div>
+    <button class="btn-start" onclick="startWork()">🟢 Munkakezdés</button>
+    <button class="btn-break" onclick="startBreak()">☕️ Szünet kezdete</button>
     <button class="btn-break" onclick="endBreak()">🔙 Szünet vége</button>
-    <button class="btn-end" onclick="endWork()">⏹ Munka vége</button>
+    <button class="btn-end" onclick="endWork()">⛔️ Munka vége</button>
   </div>
 
   <div class="card">
-    <div class="card-title">Részletek</div>
+    <div class="card-title">📜 Részletek</div>
     <div id="timeline"></div>
   </div>
 
   <div class="card">
     <div class="card-title">📊 Összesített adatok</div>
 
-    <div class="row">
-      <span>Jelenlét</span>
-      <span id="sum_presence">00:00:00</span>
-    </div>
+    <div class="row"><span>Jelenlét</span><span id="sum_presence">00:00:00</span></div>
+    <div class="row"><span>Munkaidő</span><span id="sum_work">00:00:00</span></div>
+    <div class="row"><span>Szünet</span><span id="sum_break">00:00:00</span></div>
+    <div class="row"><span>Túlóra</span><span id="sum_overtime">—</span></div>
 
-    <div class="row">
-      <span>Munkaidő</span>
-      <span id="sum_work">00:00:00</span>
-    </div>
-
-    <div class="row">
-      <span>Szünet</span>
-      <span id="sum_break">00:00:00</span>
-    </div>
-
-    <div class="row">
-      <span>Túlóra</span>
-      <span id="sum_overtime">—</span>
-    </div>
   </div>
 
 </div>
-
 <!-- NAPTÁR OLDAL -->
 <div id="page-calendar" class="page">
 
@@ -277,290 +199,43 @@ input {
 
   <div id="day-summary" class="card"></div>
   <div id="calendar" class="card"></div>
+
+  <!-- Havi összesítés -->
   <div id="month-total" class="card"></div>
 
-  <!-- NAPI TÚLÓRÁK LISTÁJA -->
+  <!-- Napi túlórák listája -->
   <div id="calendar-daily-overtime" class="card">
       <div class="card-title">📅 Napi túlórák</div>
       <div id="calendar-daily-list"></div>
   </div>
 
 </div>
-
-<!-- TÚLÓRA PRO OLDAL -->
-<div id="page-overtime" class="page">
+<!-- NAPTÁR OLDAL -->
+<div id="page-calendar" class="page">
 
   <div class="card">
-    <div class="card-title">⏱️ Túlóra PRO</div>
-
-    <div class="row">
-      <span>App induló túlóra</span>
-      <input id="ot_app_base" type="number" step="0.01" oninput="updateOvertimeBase()">
-    </div>
-
-    <div class="row">
-      <span>App aktuális túlóra</span>
-      <span id="ot_app_current">0.00</span>
-    </div>
-
-    <div class="row">
-      <span>Céges túlóra</span>
-      <input id="ot_company" type="number" step="0.01" oninput="updateCompanyOvertime()">
-    </div>
-
-    <div class="row">
-      <span>Különbség</span>
-      <span id="ot_diff">0.00</span>
-    </div>
-
-    <div class="row">
-      <span>Mai módosítás</span>
-      <span id="ot_today_change">0.00</span>
+    <div class="row" style="justify-content:space-between;">
+      <button onclick="prevMonth()">⬅️</button>
+      <span id="month-title"></span>
+      <button onclick="nextMonth()">➡️</button>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">📅 Napi túlórák</div>
-    <div id="ot_daily_list"></div>
-  </div>
+  <div id="day-summary" class="card"></div>
+  <div id="calendar" class="card"></div>
 
-  <div class="card">
-    <div class="card-title">📊 Havi összesítés</div>
-    <div id="ot_month_total"></div>
+  <!-- Havi összesítés -->
+  <div id="month-total" class="card"></div>
+
+  <!-- Napi túlórák listája -->
+  <div id="calendar-daily-overtime" class="card">
+      <div class="card-title">📅 Napi túlórák</div>
+      <div id="calendar-daily-list"></div>
   </div>
 
 </div>
-
-<!-- BEÁLLÍTÁSOK OLDAL -->
-<div id="page-settings" class="page">
-
-  <div class="card">
-    <div class="card-title">🌐 Nyelv</div>
-
-    <div class="settings-list">
-
-      <div class="settings-item" onclick="setLanguage('hu')">
-        <div class="settings-flag">🇭🇺</div>
-        <div>Magyar</div>
-        <div class="settings-arrow">›</div>
-      </div>
-
-      <div class="settings-item" onclick="setLanguage('de')">
-        <div class="settings-flag">🇩🇪</div>
-        <div>Deutsch</div>
-        <div class="settings-arrow">›</div>
-      </div>
-
-    </div>
-  </div>
-
-</div>
-
-</div><!-- app -->
-
-<!-- NAV -->
-<div class="bottom-nav">
-
-  <div id="nav-page-home" class="nav-item active"
-       onclick="showPage('page-home')">
-    <div class="nav-icon">🏠</div>
-    <div class="nav-label">Ma</div>
-  </div>
-
-  <div id="nav-page-calendar" class="nav-item"
-       onclick="showPage('page-calendar'); initCalendarPage();">
-    <div class="nav-icon">📅</div>
-    <div class="nav-label">Naptár</div>
-  </div>
-
-  <div id="nav-page-overtime" class="nav-item"
-       onclick="showPage('page-overtime'); updateOvertimeUI();">
-    <div class="nav-icon">⏱️</div>
-    <div class="nav-label">Túlóra</div>
-  </div>
-
-  <div id="nav-page-settings" class="nav-item"
-       onclick="showPage('page-settings')">
-    <div class="nav-icon">⚙️</div>
-    <div class="nav-label">Beállítások</div>
-  </div>
-
-</div>
-
 <script>
-let db = {
-  days: {},
-  language: "hu",
-  appBaseOvertime: 0,
-  companyOvertime: 0
-};
-
-function today(){ return new Date().toISOString().slice(0,10); }
-function now(){ return new Date().toTimeString().slice(0,8); }
-function pad(n){ return n.toString().padStart(2,"0"); }
-
-function diffTime(a,b){
-  if(!a||!b) return 0;
-  return (new Date("2000-01-01 "+b) - new Date("2000-01-01 "+a)) / 1000;
-}
-
-function format(sec){
-  let h = Math.floor(sec/3600);
-  let m = Math.floor((sec%3600)/60);
-  let s = sec % 60;
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
-
-function loadDB(){
-  let r = localStorage.getItem("munkapro_v22_final_overtime");
-  if(r) db = JSON.parse(r);
-  updateUI();
-  updateOvertimeUI();
-  document.getElementById("ot_app_base").value = db.appBaseOvertime.toFixed(2);
-  document.getElementById("ot_company").value = db.companyOvertime.toFixed(2);
-}
-
-function saveDB(){
-  localStorage.setItem("munkapro_v22_final_overtime", JSON.stringify(db));
-  updateUI();
-  updateOvertimeUI();
-}
-
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  document.getElementById("nav-"+id).classList.add("active");
-
-  updateUI();
-  if(id==="page-overtime") updateOvertimeUI();
-}
-
-function setLanguage(lang){
-  db.language = lang;
-  saveDB();
-}
-
-function resetToday(){
-  let d = today();
-  db.days[d] = {
-    start:null,
-    end:null,
-    breaks:[],
-    workSegments:[],
-    presence:0,
-    workTime:0,
-    breakTime:0,
-    overtime:0
-  };
-  saveDB();
-}
-
-function ensure(d){
-  if(!db.days[d]){
-    db.days[d] = {
-      start:null,
-      end:null,
-      breaks:[],
-      workSegments:[],
-      presence:0,
-      workTime:0,
-      breakTime:0,
-      overtime:0
-    };
-  }
-  if(!db.days[d].workSegments) db.days[d].workSegments = [];
-  return db.days[d];
-}
-
-function startWork(){
-  let d = today();
-  let day = ensure(d);
-  if(day.start) return;
-  day.start = now();
-  day.workSegments.push({ start: day.start, end:null });
-  saveDB();
-}
-
-function startBreak(){
-  let d = today();
-  let day = ensure(d);
-  if(!day.start) return;
-  if(day.breaks.some(b=>!b.end)) return;
-
-  let seg = day.workSegments;
-  if(seg.length && seg[seg.length-1].end === null){
-    seg[seg.length-1].end = now();
-  }
-
-  day.breaks.push({ start: now(), end:null });
-  saveDB();
-}
-
-function endBreak(){
-  let d = today();
-  let day = ensure(d);
-  let br = day.breaks;
-  if(!br.length || br[br.length-1].end !== null) return;
-
-  br[br.length-1].end = now();
-  day.workSegments.push({ start: now(), end:null });
-  saveDB();
-}
-
-function endWork(){
-  let d = today();
-  let day = ensure(d);
-  if(!day.start || day.end) return;
-  if(day.breaks.some(b=>!b.end)) return;
-
-  day.end = now();
-
-  let seg = day.workSegments;
-  if(seg.length && seg[seg.length-1].end === null){
-    seg[seg.length-1].end = day.end;
-  }
-
-  day.presence = diffTime(day.start, day.end);
-
-  day.breakTime = 0;
-  day.breaks.forEach(b=>{
-    day.breakTime += diffTime(b.start, b.end);
-  });
-
-  day.workTime = 0;
-  seg.forEach(s=>{
-    day.workTime += diffTime(s.start, s.end);
-  });
-
-  const extraBreakSec = Math.max(0, day.breakTime - 1800);
-  const extraBreakHours = extraBreakSec / 3600;
-
-  day.overtime = (day.workTime/3600 - 8) - extraBreakHours;
-
-  saveDB();
-}
-
-function renderTimeline(day){
-  const tl = document.getElementById("timeline");
-  tl.innerHTML = "";
-  if(!day) return;
-
-  let events = [];
-  if(day.start) events.push({ time: day.start, label: "Munkakezdés" });
-  day.breaks.forEach(b=>{
-    if(b.start) events.push({ time:b.start, label:"Szünet kezdete" });
-    if(b.end)   events.push({ time:b.end,   label:"Szünet vége" });
-  });
-  if(day.end) events.push({ time: day.end, label: "Munka vége" });
-
-  events.sort((a,b)=>a.time.localeCompare(b.time));
-
-  events.forEach(e=>{
-    tl.innerHTML += `<div class="entry">${e.label}: <span>${e.time}</span></div>`;
-  });
-}
+/* --- NAPTÁR LOGIKA --- */
 
 let currentCalendarDay = today();
 let currentYear = new Date().getFullYear();
@@ -571,31 +246,6 @@ const monthsHU = [
   "Július","Augusztus","Szeptember","Október","November","December"
 ];
 
-function updateUI(){
-  let d = today();
-  let day = db.days[d];
-
-  if(day){
-    renderTimeline(day);
-    sum_presence.innerText = format(day.presence || 0);
-    sum_work.innerText     = format(day.workTime || 0);
-    sum_break.innerText    = format(day.breakTime || 0);
-    sum_overtime.innerText = (day.overtime || 0).toFixed(2);
-  } else {
-    timeline.innerHTML = "";
-    sum_presence.innerText = "00:00:00";
-    sum_work.innerText     = "00:00:00";
-    sum_break.innerText    = "00:00:00";
-    sum_overtime.innerText = "—";
-  }
-
-    if(document.getElementById("page-calendar").classList.contains("active")){
-    renderCalendar();
-    renderDaySummary(currentCalendarDay);
-  }
-}
-
-/* NAPTÁR RENDER */
 function renderCalendar(){
   const cal = document.getElementById("calendar");
   const monthTotal = document.getElementById("month-total");
@@ -641,12 +291,14 @@ function renderCalendar(){
 
   monthTotal.innerHTML = `
     <div style="font-size:16px;">
-      Havi túlóra: <span style="color:${color};font-weight:700;">
-      ${sign}${Math.abs(total).toFixed(2)} h</span>
+      📊 Havi túlóra: 
+      <span style="color:${color};font-weight:700;">
+        ${sign}${Math.abs(total).toFixed(2)} h
+      </span>
     </div>
   `;
 
-  /* NAPI TÚLÓRÁK LISTÁJA A NAPTÁR OLDALON */
+  /* --- NAPI TÚLÓRÁK LISTÁJA --- */
   const days = Object.keys(db.days).sort();
   days.forEach(k=>{
     const d = new Date(k);
@@ -654,10 +306,15 @@ function renderCalendar(){
       const ot = db.days[k].overtime || 0;
       const cls = ot >= 0 ? "ot-pos" : "ot-neg";
       const sign = ot >= 0 ? "+" : "";
+
+      const minutes = Math.round(Math.abs(ot) * 60);
+
       dailyList.innerHTML += `
         <div class="entry">
           <span>${k}</span>
-          <span class="${cls}">${sign}${ot.toFixed(2)} h</span>
+          <span class="${cls}">
+            ${sign}${ot.toFixed(2)} h | ${minutes} perc
+          </span>
         </div>
       `;
     }
@@ -733,9 +390,9 @@ function renderDaySummary(dateKey){
   box.innerHTML = `
     <h3>${dateKey}</h3>
 
-    <div class="row"><span>Munkakezdés:</span><span>${day.start ?? "—"}</span></div>
-    <div class="row"><span>Szünetek:</span><span>${breaksHTML}</span></div>
-    <div class="row"><span>Munka vége:</span><span>${day.end ?? "—"}</span></div>
+    <div class="row"><span>🟢 Munkakezdés:</span><span>${day.start ?? "—"}</span></div>
+    <div class="row"><span>☕️ Szünetek:</span><span>${breaksHTML}</span></div>
+    <div class="row"><span>⛔️ Munka vége:</span><span>${day.end ?? "—"}</span></div>
 
     <hr style="border-color:#333;margin:10px 0;">
 
@@ -757,17 +414,273 @@ function initCalendarPage(){
   renderCalendar();
   renderDaySummary(currentCalendarDay);
 }
+</script>
+<!-- TÚLÓRA PRO OLDAL -->
+<div id="page-overtime" class="page">
 
-/* TÚLÓRA PRO LOGIKA */
+  <div class="card">
+    <div class="card-title">⏱️ Túlóra PRO</div>
+
+    <div class="row">
+      <span>App induló túlóra</span>
+      <input id="ot_app_base" type="number" step="0.01" oninput="updateOvertimeBase()">
+    </div>
+
+    <div class="row">
+      <span>App aktuális túlóra</span>
+      <span id="ot_app_current">0.00</span>
+    </div>
+
+    <div class="row">
+      <span>Céges túlóra</span>
+      <input id="ot_company" type="number" step="0.01" oninput="updateCompanyOvertime()">
+    </div>
+
+    <div class="row">
+      <span>Különbség</span>
+      <span id="ot_diff">0.00</span>
+    </div>
+
+    <div class="row">
+      <span>Mai módosítás</span>
+      <span id="ot_today_change">0.00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 Napi túlórák</div>
+    <div id="ot_daily_list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 Havi összesítés</div>
+    <div id="ot_month_total"></div>
+  </div>
+
+</div>
+
+</div><!-- app END -->
+
+<!-- NAV -->
+<div class="bottom-nav">
+
+  <div id="nav-page-home" class="nav-item active"
+       onclick="showPage('page-home')">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Ma</div>
+  </div>
+
+  <div id="nav-page-calendar" class="nav-item"
+       onclick="showPage('page-calendar'); initCalendarPage();">
+    <div class="nav-icon">📅</div>
+    <div class="nav-label">Naptár</div>
+  </div>
+
+  <div id="nav-page-overtime" class="nav-item"
+       onclick="showPage('page-overtime'); updateOvertimeUI();">
+    <div class="nav-icon">⏱️</div>
+    <div class="nav-label">Túlóra</div>
+  </div>
+
+  <div id="nav-page-settings" class="nav-item"
+       onclick="showPage('page-settings')">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Beállítások</div>
+  </div>
+
+</div>
+
+<script>
+/* --- ADATBÁZIS --- */
+let db = {
+  days: {},
+  appBaseOvertime: 0,
+  companyOvertime: 0
+};
+
+/* --- SEGÉDFÜGGVÉNYEK --- */
+function today(){ return new Date().toISOString().slice(0,10); }
+function now(){ return new Date().toTimeString().slice(0,8); }
+function pad(n){ return n.toString().padStart(2,"0"); }
+
+function diffTime(a,b){
+  if(!a||!b) return 0;
+  return (new Date("2000-01-01 "+b) - new Date("2000-01-01 "+a)) / 1000;
+}
+
+function format(sec){
+  let h = Math.floor(sec/3600);
+  let m = Math.floor((sec%3600)/60);
+  let s = sec % 60;
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function loadDB(){
+  let r = localStorage.getItem("munkapro_v23_final");
+  if(r) db = JSON.parse(r);
+
+  document.getElementById("ot_app_base").value = db.appBaseOvertime.toFixed(2);
+  document.getElementById("ot_company").value = db.companyOvertime.toFixed(2);
+
+  updateUI();
+  updateOvertimeUI();
+}
+
+function saveDB(){
+  localStorage.setItem("munkapro_v23_final", JSON.stringify(db));
+  updateUI();
+  updateOvertimeUI();
+}
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("nav-"+id).classList.add("active");
+
+  updateUI();
+}
+
+/* --- NAPI ADATOK BIZTOSÍTÁSA --- */
+function ensure(d){
+  if(!db.days[d]){
+    db.days[d] = {
+      start:null,
+      end:null,
+      breaks:[],
+      workSegments:[],
+      presence:0,
+      workTime:0,
+      breakTime:0,
+      overtime:0
+    };
+  }
+  return db.days[d];
+}
+
+/* --- MUNKA / SZÜNET LOGIKA --- */
+function startWork(){
+  let d = today();
+  let day = ensure(d);
+  if(day.start) return;
+
+  day.start = now();
+  day.workSegments.push({ start: day.start, end:null });
+  saveDB();
+}
+
+function startBreak(){
+  let d = today();
+  let day = ensure(d);
+  if(!day.start) return;
+  if(day.breaks.some(b=>!b.end)) return;
+
+  let seg = day.workSegments;
+  if(seg.length && seg[seg.length-1].end === null){
+    seg[seg.length-1].end = now();
+  }
+
+  day.breaks.push({ start: now(), end:null });
+  saveDB();
+}
+
+function endBreak(){
+  let d = today();
+  let day = ensure(d);
+  let br = day.breaks;
+  if(!br.length || br[br.length-1].end !== null) return;
+
+  br[br.length-1].end = now();
+  day.workSegments.push({ start: now(), end:null });
+  saveDB();
+}
+
+function endWork(){
+  let d = today();
+  let day = ensure(d);
+  if(!day.start || day.end) return;
+  if(day.breaks.some(b=>!b.end)) return;
+
+  day.end = now();
+
+  let seg = day.workSegments;
+  if(seg.length && seg[seg.length-1].end === null){
+    seg[seg.length-1].end = day.end;
+  }
+
+  /* --- JELENLÉT = MUNKA + SZÜNET --- */
+  day.breakTime = 0;
+  day.breaks.forEach(b=>{
+    day.breakTime += diffTime(b.start, b.end);
+  });
+
+  day.workTime = 0;
+  seg.forEach(s=>{
+    day.workTime += diffTime(s.start, s.end);
+  });
+
+  day.presence = day.workTime + day.breakTime;
+
+  /* --- SZÜNET TÖBBLET (30 perc felett) --- */
+  let extraBreak = Math.max(0, day.breakTime - 1800);  
+  let extraBreakHours = extraBreak / 3600;
+
+  /* --- TÚLÓRA = JELENLÉT - 8 ÓRA - TÖBBLET --- */
+  day.overtime = (day.presence / 3600) - 8 - extraBreakHours;
+
+  saveDB();
+}
+
+/* --- TIMELINE --- */
+function renderTimeline(day){
+  const tl = document.getElementById("timeline");
+  tl.innerHTML = "";
+  if(!day) return;
+
+  let events = [];
+  if(day.start) events.push({ time: day.start, label: "🟢 Munkakezdés" });
+  day.breaks.forEach(b=>{
+    if(b.start) events.push({ time:b.start, label:"☕️ Szünet kezdete" });
+    if(b.end)   events.push({ time:b.end,   label:"🔙 Szünet vége" });
+  });
+  if(day.end) events.push({ time: day.end, label: "⛔️ Munka vége" });
+
+  events.sort((a,b)=>a.time.localeCompare(b.time));
+
+  events.forEach(e=>{
+    tl.innerHTML += `<div class="entry">${e.label}: <span>${e.time}</span></div>`;
+  });
+}
+
+/* --- MAI ÖSSZESÍTÉS --- */
+function updateUI(){
+  let d = today();
+  let day = db.days[d];
+
+  if(day){
+    renderTimeline(day);
+    sum_presence.innerText = format(day.presence || 0);
+    sum_work.innerText     = format(day.workTime || 0);
+    sum_break.innerText    = format(day.breakTime || 0);
+    sum_overtime.innerText = (day.overtime || 0).toFixed(2);
+  } else {
+    timeline.innerHTML = "";
+    sum_presence.innerText = "00:00:00";
+    sum_work.innerText     = "00:00:00";
+    sum_break.innerText    = "00:00:00";
+    sum_overtime.innerText = "—";
+  }
+}
+
+/* --- TÚLÓRA PRO LOGIKA --- */
 function updateOvertimeBase(){
-  const base = parseFloat(document.getElementById("ot_app_base").value.replace(",", ".")) || 0;
-  db.appBaseOvertime = base;
+  db.appBaseOvertime = parseFloat(ot_app_base.value.replace(",", ".")) || 0;
   saveDB();
 }
 
 function updateCompanyOvertime(){
-  const comp = parseFloat(document.getElementById("ot_company").value.replace(",", ".")) || 0;
-  db.companyOvertime = comp;
+  db.companyOvertime = parseFloat(ot_company.value.replace(",", ".")) || 0;
   saveDB();
 }
 
@@ -790,17 +703,14 @@ function updateOvertimeUI(){
   const appCurrent = base + totalDaily;
   const diff = comp - appCurrent;
 
-  document.getElementById("ot_app_current").innerText = appCurrent.toFixed(2);
-  document.getElementById("ot_today_change").innerText = todayChange.toFixed(2);
+  ot_app_current.innerText = appCurrent.toFixed(2);
+  ot_today_change.innerText = todayChange.toFixed(2);
 
-  const diffEl = document.getElementById("ot_diff");
-  diffEl.className = diff >= 0 ? "ot-pos" : "ot-neg";
-  diffEl.innerText = diff.toFixed(2);
+  ot_diff.className = diff >= 0 ? "ot-pos" : "ot-neg";
+  ot_diff.innerText = diff.toFixed(2);
 
-  const listEl = document.getElementById("ot_daily_list");
-  const monthEl = document.getElementById("ot_month_total");
-
-  listEl.innerHTML = "";
+  /* --- NAPI LISTA --- */
+  ot_daily_list.innerHTML = "";
   const nowDate = new Date();
   const y = nowDate.getFullYear();
   const m = nowDate.getMonth();
@@ -811,12 +721,17 @@ function updateOvertimeUI(){
     const ot = db.days[k].overtime || 0;
     const cls = ot >= 0 ? "ot-pos" : "ot-neg";
     const sign = ot >= 0 ? "+" : "";
-    listEl.innerHTML += `
+    const minutes = Math.round(Math.abs(ot) * 60);
+
+    ot_daily_list.innerHTML += `
       <div class="entry">
         <span>${k}</span>
-        <span class="${cls}">${sign}${ot.toFixed(2)} h</span>
+        <span class="${cls}">
+          ${sign}${ot.toFixed(2)} h | ${minutes} perc
+        </span>
       </div>
     `;
+
     if(d.getFullYear()===y && d.getMonth()===m){
       monthTotal += ot;
     }
@@ -824,7 +739,8 @@ function updateOvertimeUI(){
 
   const mSign = monthTotal >= 0 ? "+" : "";
   const mClass = monthTotal >= 0 ? "ot-pos" : "ot-neg";
-  monthEl.innerHTML = `
+
+  ot_month_total.innerHTML = `
     <div class="${mClass}">
       Aktuális hónap: ${mSign}${monthTotal.toFixed(2)} h
     </div>
