@@ -76,7 +76,10 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
   </div>
   <div id="day-summary" class="card"></div>
   <div id="calendar" class="card"></div>
-  <div id="month-total" class="card"></div>
+  <div id="month-total" class="card">
+  <div class="card-title">📊 Havi összesítés</div>
+  <div id="month-total-value"></div>
+</div>
   <div id="calendar-daily-overtime" class="card">
     <div class="card-title" data-i18n="calendar.dailyOvertimeTitle">📅 Napi túlórák</div>
     <div id="calendar-daily-list"></div>
@@ -108,7 +111,7 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
       <span id="ot_today_change">0.00</span>
     </div>
   </div>
-  
+
 <!-- BEÁLLÍTÁSOK OLDAL -->
 <div id="page-settings" class="page">
   <div class="card">
@@ -338,7 +341,9 @@ function renderCalendar(){
   if(d.getFullYear()===currentYear&&d.getMonth()===currentMonth) total+=db.days[k].overtime||0;
  });
  let sign=total>=0?"+":"-",color=total>=0?"var(--success)":"var(--danger)";
- monthTotal.innerHTML=`<div style="font-size:14px;color:${color};font-weight:700;">${sign}${Math.abs(total).toFixed(2)} h</div>`;
+ let icon = total >= 0 ? "📈" : "📉";
+document.getElementById("month-total-value").innerHTML =
+  `<div style="font-size:14px;color:${color};font-weight:700;">${icon} ${sign}${Math.abs(total).toFixed(2)} h</div>`;
 
  Object.keys(db.days).sort().forEach(k=>{
   let d=new Date(k);
