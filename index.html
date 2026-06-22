@@ -179,11 +179,13 @@ function saveDB(){
 
 /* --- PAGE SWITCH --- */
 function showPage(id){
- document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
- document.getElementById("nav-"+id).classList.add("active");
- updateUI();
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("nav-"+id).classList.add("active");
+
+  if(id === "page-home") updateUI();
 }
 
 /* --- DAY ENSURE --- */
