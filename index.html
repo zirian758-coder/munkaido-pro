@@ -77,9 +77,9 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
   <div id="day-summary" class="card"></div>
   <div id="calendar" class="card"></div>
   <div id="month-total" class="card">
-  <div class="card-title" data-i18n="calendar.monthSummary">📊 Havi összesítés</div>
-  <div id="month-total-value"></div>
-</div>
+    <div class="card-title" data-i18n="calendar.monthSummary">📊 Havi összesítés</div>
+    <div id="month-total-value"></div>
+  </div>
   <div id="calendar-daily-overtime" class="card">
     <div class="card-title" data-i18n="calendar.dailyOvertimeTitle">📅 Napi túlórák</div>
     <div id="calendar-daily-list"></div>
@@ -111,6 +111,15 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
       <span id="ot_today_change">0.00</span>
     </div>
   </div>
+  <div class="card">
+    <div class="card-title" data-i18n="ot.dailyTitle">📅 Napi túlórák</div>
+    <div id="ot_daily_list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title" data-i18n="ot.monthTitle">📊 Havi összesítés</div>
+    <div id="ot_month_total"></div>
+  </div>
+</div>
 
 <!-- BEÁLLÍTÁSOK OLDAL -->
 <div id="page-settings" class="page">
@@ -140,11 +149,11 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
     <div class="nav-icon">🏠</div>
     <div class="nav-label" data-i18n="nav.home">Ma</div>
   </div>
-  <div id="nav-page-calendar" class="nav-item" onclick="showPage('page-calendar');initCalendarPage();">
+  <div id="nav-page-calendar" class="nav-item" onclick="showPage('page-calendar')">
     <div class="nav-icon">📅</div>
     <div class="nav-label" data-i18n="nav.calendar">Naptár</div>
   </div>
-  <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime');updateOvertimeUI();">
+  <div id="nav-page-overtime" class="nav-item" onclick="showPage('page-overtime')">
     <div class="nav-icon">⏱️</div>
     <div class="nav-label" data-i18n="nav.overtime">Túlóra</div>
   </div>
@@ -153,6 +162,7 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
     <div class="nav-label" data-i18n="nav.settings">Beállítások</div>
   </div>
 </div>
+
 <script>
 /* --- DB --- */
 let db={days:{},appBaseOvertime:0,companyOvertime:0};
@@ -168,24 +178,11 @@ const format=sec=>`${pad(Math.floor(sec/3600))}:${pad(Math.floor((sec%3600)/60))
 function loadDB(){
  let r=localStorage.getItem("munkapro_v24_multi");
  if(r) db=JSON.parse(r);
- ot_app_base.value=db.appBaseOvertime.toFixed(2);
- ot_company.value=db.companyOvertime.toFixed(2);
- updateUI();updateOvertimeUI();
+ if(typeof ot_app_base!=="undefined") ot_app_base.value=db.appBaseOvertime.toFixed(2);
+ if(typeof ot_company!=="undefined")  ot_company.value=db.companyOvertime.toFixed(2);
 }
 function saveDB(){
  localStorage.setItem("munkapro_v24_multi",JSON.stringify(db));
- updateUI();updateOvertimeUI();
-}
-
-/* --- PAGE SWITCH --- */
-function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-
-  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
-  document.getElementById("nav-"+id).classList.add("active");
-
-  if(id === "page-home") updateUI();
 }
 
 /* --- DAY ENSURE --- */
@@ -201,6 +198,8 @@ function startWork(){
  day.start=now();
  day.workSegments.push({start:day.start,end:null});
  saveDB();
+ updateUI();
+ updateOvertimeUI();
 }
 function startBreak(){
  let d=today(),day=ensure(d);
@@ -209,6 +208,8 @@ function startBreak(){
  if(seg.length&&seg[seg.length-1].end===null) seg[seg.length-1].end=now();
  day.breaks.push({start:now(),end:null});
  saveDB();
+ updateUI();
+ updateOvertimeUI();
 }
 function endBreak(){
  let d=today(),day=ensure(d),br=day.breaks;
@@ -216,6 +217,8 @@ function endBreak(){
  br[br.length-1].end=now();
  day.workSegments.push({start:now(),end:null});
  saveDB();
+ updateUI();
+ updateOvertimeUI();
 }
 function endWork(){
  let d=today(),day=ensure(d);
@@ -232,6 +235,8 @@ function endWork(){
  day.overtime=(day.presence/3600)-8-extraBreak;
 
  saveDB();
+ updateUI();
+ updateOvertimeUI();
 }
 
 /* --- TIMELINE --- */
@@ -271,10 +276,12 @@ function updateUI(){
 function updateOvertimeBase(){
  db.appBaseOvertime=parseFloat(ot_app_base.value.replace(",", "."))||0;
  saveDB();
+ updateOvertimeUI();
 }
 function updateCompanyOvertime(){
  db.companyOvertime=parseFloat(ot_company.value.replace(",", "."))||0;
  saveDB();
+ updateOvertimeUI();
 }
 function updateOvertimeUI(){
   let base = db.appBaseOvertime || 0;
@@ -298,7 +305,6 @@ function updateOvertimeUI(){
   ot_diff.className = diff >= 0 ? "ot-pos" : "ot-neg";
   ot_diff.innerText = diff.toFixed(2);
 
-  // --- JAVÍTOTT RÉSZ ---
   const dailyListEl = document.getElementById("ot_daily_list");
   const monthTotalEl = document.getElementById("ot_month_total");
 
@@ -325,7 +331,6 @@ function updateOvertimeUI(){
     monthTotalEl.innerHTML = `<div class="${mCls}">${mSign}${monthTotal.toFixed(2)} h</div>`;
   }
 }
-
 /* --- CALENDAR --- */
 let currentCalendarDay=today(),currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth();
 const monthsHU=["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December"];
@@ -333,7 +338,6 @@ const monthsDE=["Januar","Februar","März","April","Mai","Juni","Juli","August",
 
 function renderCalendar(){
  let cal=document.getElementById("calendar");
- let monthTotal=document.getElementById("month-total");
  let dailyList=document.getElementById("calendar-daily-list");
  cal.innerHTML="";dailyList.innerHTML="";
 
@@ -341,7 +345,7 @@ function renderCalendar(){
  let last=new Date(currentYear,currentMonth+1,0);
  let days=last.getDate(),start=first.getDay();
 
- let lang=document.documentElement.dataset.lang;
+ let lang=document.documentElement.dataset.lang||"hu";
  let monthName=lang==="de"?monthsDE[currentMonth]:monthsHU[currentMonth];
  document.getElementById("month-title").innerText = `${monthName} ${currentYear}`;
 
@@ -362,17 +366,18 @@ function renderCalendar(){
   let d=new Date(k);
   if(d.getFullYear()===currentYear&&d.getMonth()===currentMonth) total+=db.days[k].overtime||0;
  });
- let sign=total>=0?"+":"-",color=total>=0?"var(--success)":"var(--danger)";
- let icon = total >= 0 ? "📈" : "📉";
-document.getElementById("month-total-value").innerHTML =
+ let sign=total>=0?"+":"-",
+     color=total>=0?"var(--success)":"var(--danger)",
+     icon = total >= 0 ? "📈" : "📉";
+ document.getElementById("month-total-value").innerHTML =
   `<div style="font-size:14px;color:${color};font-weight:700;">${icon} ${sign}${Math.abs(total).toFixed(2)} h</div>`;
 
  Object.keys(db.days).sort().forEach(k=>{
   let d=new Date(k);
   if(d.getFullYear()===currentYear&&d.getMonth()===currentMonth){
-   let ot=db.days[k].overtime||0,cls=ot>=0?"ot-pos":"ot-neg",sign=ot>=0?"+":"";
+   let ot=db.days[k].overtime||0,cls=ot>=0?"ot-pos":"ot-neg",sgn=ot>=0?"+":"";
    let min=Math.round(Math.abs(ot)*60);
-   dailyList.innerHTML+=`<div class="entry"><span>${k}</span><span class="${cls}">${sign}${ot.toFixed(2)} h | ${min} perc</span></div>`;
+   dailyList.innerHTML+=`<div class="entry"><span>${k}</span><span class="${cls}">${sgn}${ot.toFixed(2)} h | ${min} perc</span></div>`;
   }
  });
 }
@@ -417,6 +422,8 @@ function initCalendarPage(){
 function resetToday(){
  delete db.days[today()];
  saveDB();
+ updateUI();
+ updateOvertimeUI();
 }
 
 /* --- I18N --- */
@@ -498,35 +505,51 @@ const translations={
 };
 
 function i18nLabel(key){
- let lang=document.documentElement.dataset.lang;
- return translations[lang][key]||key;
+ let lang=document.documentElement.dataset.lang||"hu";
+ return (translations[lang]&&translations[lang][key])||key;
 }
 
 function applyTranslations(){
- let lang=document.documentElement.dataset.lang;
+ let lang=document.documentElement.dataset.lang||"hu";
+ let dict=translations[lang]||translations.hu;
  document.querySelectorAll("[data-i18n]").forEach(el=>{
   let key=el.dataset.i18n;
-  el.innerText=translations[lang][key]||key;
+  if(dict[key]!==undefined) el.innerText=dict[key];
  });
- document.title=translations[lang]["app.title"];
+ document.title=dict["app.title"]||"Munkaidő PRO";
  document.querySelectorAll(".lang-option").forEach(el=>{
   el.classList.toggle("active",el.dataset.langSelect===lang);
  });
- renderCalendar();
- renderDaySummary(currentCalendarDay);
- updateUI();
- updateOvertimeUI();
 }
 
+/* --- LANGUAGE SET --- */
 function setLanguage(lang){
  document.documentElement.dataset.lang=lang;
+ localStorage.setItem("lang",lang);
  applyTranslations();
- saveDB();
+}
+
+/* --- PAGE SWITCH --- */
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+ document.getElementById("nav-"+id).classList.add("active");
+
+ if(id==="page-home")     updateUI();
+ if(id==="page-calendar") initCalendarPage();
+ if(id==="page-overtime") updateOvertimeUI();
 }
 
 /* --- INIT --- */
 loadDB();
+let storedLang=localStorage.getItem("lang");
+if(storedLang) document.documentElement.dataset.lang=storedLang;
 applyTranslations();
+showPage("page-home");
+updateUI();
+updateOvertimeUI();
+initCalendarPage();
 </script>
 </body>
 </html>
