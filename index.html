@@ -327,7 +327,7 @@ function renderCalendar(){
 
  let lang=document.documentElement.dataset.lang;
  let monthName=lang==="de"?monthsDE[currentMonth]:monthsHU[currentMonth];
- month_title.innerText=`${monthName} ${currentYear}`;
+ document.getElementById("month-title").innerText = `${monthName} ${currentYear}`;
 
  for(let i=0;i<start;i++) cal.appendChild(document.createElement("div"));
 
