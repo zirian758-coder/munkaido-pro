@@ -77,7 +77,7 @@ hr{border:none;border-top:1px solid #2a2d33;margin:8px 0;}
   <div id="day-summary" class="card"></div>
   <div id="calendar" class="card"></div>
   <div id="month-total" class="card">
-  <div class="card-title">📊 Havi összesítés</div>
+ <div class="card-title" data-i18n="calendar.monthSummary">📊 Havi összesítés</div>
   <div id="month-total-value"></div>
 </div>
   <div id="calendar-daily-overtime" class="card">
@@ -275,33 +275,53 @@ function updateCompanyOvertime(){
  saveDB();
 }
 function updateOvertimeUI(){
- let base=db.appBaseOvertime||0,comp=db.companyOvertime||0;
- let totalDaily=0,todayChange=0,tKey=today();
- let dates=Object.keys(db.days).sort();
- dates.forEach(k=>{
-  let ot=db.days[k].overtime||0;
-  totalDaily+=ot;
-  if(k===tKey) todayChange=ot;
- });
- let appCurrent=base+totalDaily;
- let diff=comp-appCurrent;
+  let base = db.appBaseOvertime || 0;
+  let comp = db.companyOvertime || 0;
 
- ot_app_current.innerText=appCurrent.toFixed(2);
- ot_today_change.innerText=todayChange.toFixed(2);
- ot_diff.className=diff>=0?"ot-pos":"ot-neg";
- ot_diff.innerText=diff.toFixed(2);
+  let totalDaily = 0, todayChange = 0, tKey = today();
+  let dates = Object.keys(db.days).sort();
 
- ot_daily_list.innerHTML="";
- let nowD=new Date(),y=nowD.getFullYear(),m=nowD.getMonth(),monthTotal=0;
- dates.forEach(k=>{
-  let d=new Date(k),ot=db.days[k].overtime||0;
-  let cls=ot>=0?"ot-pos":"ot-neg",sign=ot>=0?"+":"";
-  let min=Math.round(Math.abs(ot)*60);
-  ot_daily_list.innerHTML+=`<div class="entry"><span>${k}</span><span class="${cls}">${sign}${ot.toFixed(2)} h | ${min} perc</span></div>`;
-  if(d.getFullYear()===y&&d.getMonth()===m) monthTotal+=ot;
- });
- let mSign=monthTotal>=0?"+":"",mCls=monthTotal>=0?"ot-pos":"ot-neg";
- ot_month_total.innerHTML=`<div class="${mCls}">${mSign}${monthTotal.toFixed(2)} h</div>`;
+  dates.forEach(k => {
+    let ot = db.days[k].overtime || 0;
+    totalDaily += ot;
+    if (k === tKey) todayChange = ot;
+  });
+
+  let appCurrent = base + totalDaily;
+  let diff = comp - appCurrent;
+
+  ot_app_current.innerText = appCurrent.toFixed(2);
+  ot_today_change.innerText = todayChange.toFixed(2);
+
+  ot_diff.className = diff >= 0 ? "ot-pos" : "ot-neg";
+  ot_diff.innerText = diff.toFixed(2);
+
+  // --- JAVÍTOTT RÉSZ ---
+  const dailyListEl = document.getElementById("ot_daily_list");
+  const monthTotalEl = document.getElementById("ot_month_total");
+
+  let nowD = new Date(), y = nowD.getFullYear(), m = nowD.getMonth(), monthTotal = 0;
+
+  if (dailyListEl) dailyListEl.innerHTML = "";
+
+  dates.forEach(k => {
+    let d = new Date(k), ot = db.days[k].overtime || 0;
+    let cls = ot >= 0 ? "ot-pos" : "ot-neg";
+    let sign = ot >= 0 ? "+" : "";
+    let min = Math.round(Math.abs(ot) * 60);
+
+    if (dailyListEl) {
+      dailyListEl.innerHTML += `<div class="entry"><span>${k}</span><span class="${cls}">${sign}${ot.toFixed(2)} h | ${min} perc</span></div>`;
+    }
+
+    if (d.getFullYear() === y && d.getMonth() === m) monthTotal += ot;
+  });
+
+  if (monthTotalEl) {
+    let mSign = monthTotal >= 0 ? "+" : "";
+    let mCls = monthTotal >= 0 ? "ot-pos" : "ot-neg";
+    monthTotalEl.innerHTML = `<div class="${mCls}">${mSign}${monthTotal.toFixed(2)} h</div>`;
+  }
 }
 
 /* --- CALENDAR --- */
@@ -449,6 +469,7 @@ const translations={
   "home.breakTime":"Pause",
   "home.overtime":"Überstunden",
   "calendar.dailyOvertimeTitle":"📅 Tägliche Überstunden",
+  "calendar.monthSummary": "📊 Monatsübersicht",
   "ot.title":"⏱️ Überstunden PRO",
   "ot.appBase":"Startwert der App‑Überstunden",
   "ot.appCurrent":"Aktuelle App‑Überstunden",
